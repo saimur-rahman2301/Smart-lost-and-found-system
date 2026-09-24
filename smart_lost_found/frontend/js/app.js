@@ -132,6 +132,7 @@ function updateRoleUI() {
   const authBtn = document.getElementById('auth-action-btn');
   const navBrowse = document.getElementById('nav-item-browse');
   const navStats = document.getElementById('nav-item-stats');
+  const navSync = document.getElementById('nav-item-sync');
   const heroBrowseBtn = document.getElementById('hero-browse-btn');
   const privacyBanner = document.getElementById('student-privacy-banner');
   const navDashBtn = document.getElementById('nav-dashboard');
@@ -144,6 +145,7 @@ function updateRoleUI() {
 
     if (navBrowse) navBrowse.style.display = 'block';
     if (navStats) navStats.style.display = 'block';
+    if (navSync) navSync.style.display = 'block';
     if (heroBrowseBtn) heroBrowseBtn.style.display = 'inline-flex';
     if (privacyBanner) privacyBanner.style.display = 'none';
     if (navDashBtn) navDashBtn.innerHTML = '📊 Campus Dashboard';
@@ -155,6 +157,7 @@ function updateRoleUI() {
 
     if (navBrowse) navBrowse.style.display = 'none';
     if (navStats) navStats.style.display = 'none';
+    if (navSync) navSync.style.display = 'none';
     if (heroBrowseBtn) heroBrowseBtn.style.display = 'none';
     if (privacyBanner) {
       privacyBanner.style.display = 'flex';
@@ -222,8 +225,14 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
-// ── Worldwide GitHub Sync Handlers ────────────────────────────────────────
+// ── Worldwide GitHub Sync Handlers (Admin Only) ───────────────────────────
 function triggerWorldwideSync() {
+  if (currentUser.role !== 'ADMIN') {
+    showToast('Worldwide deployment is restricted to campus administrators', 'error');
+    openLoginModal('ADMIN');
+    return;
+  }
+
   const modal = document.getElementById('sync-modal');
   const statusMsg = document.getElementById('sync-status-msg');
   const statusSub = document.getElementById('sync-status-sub');
