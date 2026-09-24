@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Lost & Found | Find It. Match It. Return It.</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="#dashboard" class="brand-logo" onclick="switchView('dashboard')">
+        <div class="brand-icon">🔍</div>
+        <div>
+          <div class="brand-title">SMART LOST &amp; FOUND</div>
+          <div class="brand-motto">Find It. Match It. Return It. &bull; University DSA Engine</div>
+        </div>
+      </a>
+
+      <!-- Primary Navigation Links -->
+      <nav>
+        <ul class="nav-links">
+          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">🏠 My Items</button>
+          </li>
+          <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button>
+          </li>
+          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report
+              Found</button></li>
+          <li><button class="nav-btn" id="nav-matches" onclick="switchView('matches')">🎯 Match Results</button></li>
+          <!-- Admin-Only Navigation (Dynamically shown when admin logs in) -->
+          <li id="nav-item-browse" style="display:none;"><button class="nav-btn" id="nav-browse"
+              onclick="switchView('browse')">🔍 Browse All Items</button></li>
+          <li id="nav-item-stats" style="display:none;"><button class="nav-btn" id="nav-stats"
+              onclick="switchView('stats')">📈 DSA Engine &amp; Stats</button></li>
+        </ul>
+      </nav>
+
+      <!-- User Role Status & Switcher -->
+      <div class="user-auth-box">
+        <div class="user-badge student-active" id="current-user-badge">
+          <span class="user-role-dot"></span>
+          <span id="current-user-label">👨‍🎓 Student</span>
+        </div>
+        <button class="btn btn-outline btn-sm" id="auth-action-btn" onclick="openLoginModal()">🔐 Switch / Admin
+          Login</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-wrapper">
+
+    <!-- ===================================================================
+         VIEW 1: DASHBOARD (HOME)
+         =================================================================== -->
+    <section id="view-dashboard" class="view-section active">
+
+      <!-- Student Privacy Alert Banner (Visible only in student mode) -->
+      <div class="privacy-banner" id="student-privacy-banner">
+        <span class="privacy-icon">🔒</span>
+        <div>
+          <strong>Student Privacy Active:</strong> You are currently viewing items reported by your student account
+          (<span id="banner-student-email" style="text-decoration:underline; font-weight:700;">ali.raza@uni.edu</span>).
+          To protect privacy, general campus-wide browsing is restricted to authorized Lost &amp; Found staff.
+        </div>
+      </div>
+
+      <!-- Quick Action Cards (Very easy to understand) -->
+      <div class="quick-actions-row">
+        <div class="action-card card-lost" onclick="switchView('report-lost')">
+          <div class="action-icon">🔴</div>
+          <div class="action-info">
+            <h3 class="action-title">I Lost an Item</h3>
+            <p class="action-desc">Submit details of what you misplaced so our algorithm can match it when found.</p>
+          </div>
+          <button class="btn btn-danger btn-sm">Report Lost Item &rarr;</button>
+        </div>
+
+        <div class="action-card card-found" onclick="switchView('report-found')">
+          <div class="action-icon">🟢</div>
+          <div class="action-info">
+            <h3 class="action-title">I Found an Item</h3>
+            <p class="action-desc">Help return a belonging to a fellow student by submitting what you found.</p>
+          </div>
+          <button class="btn btn-success btn-sm">Report Found Item &rarr;</button>
+        </div>
+
+        <div class="action-card card-match" onclick="switchView('matches')">
+          <div class="action-icon">🎯</div>
+          <div class="action-info">
+            <h3 class="action-title">Check My Matches</h3>
+            <p class="action-desc">Run the 100-point matching engine to see if anyone found your items.</p>
+          </div>
+          <button class="btn btn-primary btn-sm">View Matches &rarr;</button>
+        </div>
+      </div>
+
+      <!-- Summary Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon rose">📦</div>
+          <div>
+            <div class="stat-value" id="dash-total-lost">0</div>
+            <div class="stat-label" id="label-stat-lost">My Lost Reports</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <div class="stat-value" id="dash-total-found">0</div>
+            <div class="stat-label" id="label-stat-found">My Found Reports</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">🎉</div>
+          <div>
+            <div class="stat-value" id="dash-total-recovered">0</div>
+            <div class="stat-label" id="label-stat-recovered">Reunited / Recovered</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">⚡</div>
+          <div>
+            <div class="stat-value" id="dash-recovery-rate">0%</div>
+            <div class="stat-label">Recovery Rate</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- User's Items List Header -->
+      <div class="section-header">
+        <div>
+          <h2 class="section-title" id="dashboard-items-heading">📋 My Reported Belongings</h2>
+          <p class="section-subtitle" id="dashboard-items-subheading">Items you have reported to the university lost
+            &amp; found system.</p>
+        </div>
+      </div>
+
+      <!-- Items Grid -->
+      <div class="items-grid" id="dashboard-recent-grid">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 2: SEARCH & BROWSE (ADMIN ONLY)
+         =================================================================== -->
+    <section id="view-browse" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">🔍 Campus Catalog Browser (Admin View)</h2>
+          <p class="section-subtitle">Full visibility over all reported campus items. Sorted using manual Merge Sort.
+          </p>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="search-input-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Search by title, brand, color, location, or keyword..."
+              oninput="handleSearchChange()">
+          </div>
+          <select class="select-control" id="filter-type" onchange="handleFilterChange()">
+            <option value="ALL">All Types (Lost &amp; Found)</option>
+            <option value="LOST">Lost Items Only</option>
+            <option value="FOUND">Found Items Only</option>
+          </select>
+          <select class="select-control" id="filter-category" onchange="handleFilterChange()">
+            <option value="ALL">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Documents & Cards">Documents &amp; Cards</option>
+            <option value="Keys & Wallets">Keys &amp; Wallets</option>
+            <option value="Bags & Backpacks">Bags &amp; Backpacks</option>
+            <option value="Books & Stationery">Books &amp; Stationery</option>
+          </select>
+          <select class="select-control" id="filter-status" onchange="handleFilterChange()">
+            <option value="ALL">All Statuses</option>
+            <option value="ACTIVE">Active (Matching)</option>
+            <option value="RECOVERED">Recovered (Archived)</option>
+          </select>
+          <select class="select-control" id="filter-sort" onchange="handleFilterChange()">
+            <option value="DATE_NEWEST">Sort: Newest First (Merge Sort)</option>
+            <option value="DATE_OLDEST">Sort: Oldest First (Merge Sort)</option>
+            <option value="NAME_AZ">Sort: Name A-Z (Merge Sort)</option>
+            <option value="NAME_ZA">Sort: Name Z-A (Merge Sort)</option>
+          </select>
+          <button class="btn btn-outline" onclick="resetFilters()">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- Item Grid -->
+      <div class="items-grid" id="browse-items-grid">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 3: REPORT LOST ITEM
+         =================================================================== -->
+    <section id="view-report-lost" class="view-section">
+      <div class="form-card">
+        <div class="form-header">
+          <div class="form-header-badge badge-lost">🔴 STEP 1 OF RECOVERY</div>
+          <h2 class="section-title">Report a Lost Item</h2>
+          <p class="section-subtitle">Fill in the details below. Our C++ matching algorithm will compare it against all
+            found items.</p>
+        </div>
+
+        <form id="form-lost" onsubmit="submitReport(event, 'LOST')">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">What is the item? *</label>
+              <input type="text" class="form-input" id="lost-name" required
+                placeholder="e.g., Casio FX-991ES Scientific Calculator, Black Dell Backpack">
+              <span class="form-help">Enter brand and model if you know it for better matching accuracy.</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select class="form-select" id="lost-category" required>
+                <option value="">-- Choose Category --</option>
+                <option value="Electronics">Electronics (Phones, Laptops, Calculators, USB)</option>
+                <option value="Documents & Cards">Documents &amp; Cards (Student ID, Licenses)</option>
+                <option value="Keys & Wallets">Keys &amp; Wallets</option>
+                <option value="Bags & Backpacks">Bags &amp; Backpacks</option>
+                <option value="Books & Stationery">Books &amp; Stationery</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Primary Color *</label>
+              <input type="text" class="form-input" id="lost-color" required placeholder="e.g., Black, Blue, Silver">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Brand / Manufacturer (Optional)</label>
+              <input type="text" class="form-input" id="lost-brand" placeholder="e.g., Casio, Apple, Dell, Samsonite">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Campus Location Where Lost *</label>
+              <select class="form-select" id="lost-location" required>
+                <option value="">-- Select Location --</option>
+                <option value="Main Library">Main Library</option>
+                <option value="Cafeteria & Food Court">Cafeteria &amp; Food Court</option>
+                <option value="Computer Science Labs">Computer Science Labs</option>
+                <option value="Student Center">Student Center</option>
+                <option value="Engineering Block A">Engineering Block A</option>
+                <option value="Sports Complex / Gym">Sports Complex / Gym</option>
+                <option value="Central Auditorium">Central Auditorium</option>
+                <option value="Main Parking Area">Main Parking Area</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date Lost *</label>
+              <input type="date" class="form-input" id="lost-date" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Your Contact (Email or Phone) *</label>
+              <input type="text" class="form-input" id="lost-contact" required placeholder="e.g., ali.raza@uni.edu">
+              <span class="form-help">Finder will use this to contact you when matched.</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Keywords / Tags (Optional)</label>
+              <input type="text" class="form-input" id="lost-keywords"
+                placeholder="e.g., calculator casio fx991es scientific black math">
+              <span class="form-help">Keywords boost the StringMatcher algorithm score (+10 pts).</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Description / Identifying Marks</label>
+              <textarea class="form-textarea" id="lost-description" rows="3"
+                placeholder="Mention any scratches, stickers, case details, or unique features that prove it is yours..."></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-danger btn-large" style="width:100%;">🔴 SUBMIT LOST ITEM REPORT</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 4: REPORT FOUND ITEM
+         =================================================================== -->
+    <section id="view-report-found" class="view-section">
+      <div class="form-card">
+        <div class="form-header">
+          <div class="form-header-badge badge-found">🟢 RETURN A BELONGING</div>
+          <h2 class="section-title">Report a Found Item</h2>
+          <p class="section-subtitle">Did you find an item on campus? Submit it here so the rightful owner can be
+            contacted.</p>
+        </div>
+
+        <form id="form-found" onsubmit="submitReport(event, 'FOUND')">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label class="form-label">What item did you find? *</label>
+              <input type="text" class="form-input" id="found-name" required
+                placeholder="e.g., Casio Scientific Calculator, Blue Engineering File">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select class="form-select" id="found-category" required>
+                <option value="">-- Choose Category --</option>
+                <option value="Electronics">Electronics (Phones, Laptops, Calculators, USB)</option>
+                <option value="Documents & Cards">Documents &amp; Cards (Student ID, Licenses)</option>
+                <option value="Keys & Wallets">Keys &amp; Wallets</option>
+                <option value="Bags & Backpacks">Bags &amp; Backpacks</option>
+                <option value="Books & Stationery">Books &amp; Stationery</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Color *</label>
+              <input type="text" class="form-input" id="found-color" required placeholder="e.g., Black, Blue, Silver">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Brand / Manufacturer (Optional)</label>
+              <input type="text" class="form-input" id="found-brand" placeholder="e.g., Casio, Apple, Dell">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Campus Location Where Found *</label>
+              <select class="form-select" id="found-location" required>
+                <option value="">-- Select Location --</option>
+                <option value="Main Library">Main Library</option>
+                <option value="Cafeteria & Food Court">Cafeteria &amp; Food Court</option>
+                <option value="Computer Science Labs">Computer Science Labs</option>
+                <option value="Student Center">Student Center</option>
+                <option value="Engineering Block A">Engineering Block A</option>
+                <option value="Sports Complex / Gym">Sports Complex / Gym</option>
+                <option value="Central Auditorium">Central Auditorium</option>
+                <option value="Main Parking Area">Main Parking Area</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date Found *</label>
+              <input type="date" class="form-input" id="found-date" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Your Contact (Finder Email or Phone) *</label>
+              <input type="text" class="form-input" id="found-contact" required placeholder="e.g., finder@uni.edu">
+              <span class="form-help">Owner will reach out to this contact to collect the item.</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Keywords (Optional)</label>
+              <input type="text" class="form-input" id="found-keywords"
+                placeholder="e.g., calculator casio fx991es scientific desk library">
+            </div>
+
+            <div class="form-group full-width">
+              <label class="form-label">Where did you find it / Where is it stored now?</label>
+              <textarea class="form-textarea" id="found-description" rows="3"
+                placeholder="e.g., Found on study table in 2nd floor library reading room. Currently with reception..."></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-large" style="width:100%;">🟢 SUBMIT FOUND ITEM
+            REPORT</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 5: FIND MATCHES (DSA CORE ENGINE)
+         =================================================================== -->
+    <section id="view-matches" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">🎯 Algorithmic Match Results</h2>
+          <p class="section-subtitle">Evaluated using the 100-Point Rule Formula and ranked by the custom C++ Max Heap.
+          </p>
+        </div>
+      </div>
+
+      <!-- Match Selector Card -->
+      <div class="filter-bar">
+        <div style="font-size:0.9rem; font-weight:700; margin-bottom:0.4rem; color:var(--text-primary);">
+          Select your lost item to find matches:
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <select class="select-control" id="match-item-select" style="flex:1; min-width:280px;"
+            onchange="runMatchAlgorithm()">
+            <option value="">-- Choose a Lost Item --</option>
+          </select>
+          <button class="btn btn-primary" onclick="runMatchAlgorithm()">🚀 Run Match Algorithm</button>
+        </div>
+      </div>
+
+      <!-- Selected Lost Item Card Preview -->
+      <div id="match-target-summary" style="display:none; margin-bottom:1.5rem;">
+        <!-- Filled via JS -->
+      </div>
+
+      <!-- Matches Results List -->
+      <div id="matches-results-container">
+        <div
+          style="text-align:center; padding:3.5rem 1.5rem; color:var(--text-muted); background:white; border-radius:var(--radius-md); border:1px dashed var(--border);">
+          <div style="font-size:2.5rem; margin-bottom:0.5rem;">🎯</div>
+          <div style="font-weight:700; color:var(--text-primary); font-size:1.1rem; margin-bottom:0.25rem;">Select an
+            Item to Check Matches</div>
+          <p style="font-size:0.875rem; color:var(--text-secondary); max-width:440px; margin:0 auto;">
+            Choose one of your lost items above to evaluate it against all found items turned into the campus office.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         VIEW 6: STATISTICS & DSA ENGINE DIAGNOSTICS (ADMIN ONLY)
+         =================================================================== -->
+    <section id="view-stats" class="view-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">📈 System Statistics &amp; C++ DSA Diagnostics</h2>
+          <p class="section-subtitle">Live inspection of the C++ data structures and algorithms powering this system.
+          </p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="loadStatistics()">↻ Refresh Diagnostics</button>
+      </div>
+
+      <!-- High-level stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon rose">📦</div>
+          <div>
+            <div class="stat-value" id="stats-total-lost">0</div>
+            <div class="stat-label">Total Lost Reports</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div>
+            <div class="stat-value" id="stats-total-found">0</div>
+            <div class="stat-label">Total Found Reports</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">🎉</div>
+          <div>
+            <div class="stat-value" id="stats-total-recovered">0</div>
+            <div class="stat-label">Recovered Items</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">🏷️</div>
+          <div>
+            <div class="stat-value" id="stats-top-category" style="font-size:1.1rem; line-height:1.4;">-</div>
+            <div class="stat-label">Most Lost Category</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DSA Engine Technical Metrics Panel -->
+      <div class="dsa-panel">
+        <div class="dsa-header">
+          <span>🧠 C++ DSA ENGINE LIVE METRICS &amp; DIAGNOSTICS</span>
+          <span style="color:#10b981; font-weight:700;">● STATUS: OPERATIONAL</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Hash Table Bucket Capacity (m):</span>
+          <span id="dsa-ht-cap" style="color:#38bdf8;">101 prime buckets</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Hash Table Stored Items (n):</span>
+          <span id="dsa-ht-size" style="color:#38bdf8;">-</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Hash Table Collisions Count:</span>
+          <span id="dsa-ht-col" style="color:#fbbf24;">0 (Separate Chaining chains: 0)</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Hash Table Current Load Factor (&alpha; = n / m):</span>
+          <span id="dsa-ht-lf" style="color:#38bdf8;">-</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Binary Search Tree (BST) Node Count:</span>
+          <span id="dsa-bst-nodes" style="color:#a78bfa;">-</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Binary Search Tree Height:</span>
+          <span id="dsa-bst-height" style="color:#a78bfa;">-</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Manual Merge Sort Complexity:</span>
+          <span style="color:#34d399;">O(n log n) Time | O(n) Auxiliary Space</span>
+        </div>
+        <div class="dsa-stat-row">
+          <span>Custom Max Heap Priority Queue:</span>
+          <span style="color:#f472b6;">O(log k) Insertion | O(log k) Extract-Max</span>
+        </div>
+      </div>
+
+      <!-- BST In-Order Traversal Live Output -->
+      <div
+        style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:1.5rem; margin-top:1.5rem;">
+        <h3 style="font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">🌲 BST In-Order Traversal (Alphabetical
+          Sort Showcase)</h3>
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+          Demonstrating in-order traversal (Left &rarr; Root &rarr; Right) over custom C++ BST nodes, guaranteeing
+          lexicographical ordering.
+        </p>
+        <div id="bst-inorder-list"
+          style="font-family:var(--font-mono); font-size:0.8125rem; background:var(--bg-subtle); padding:1rem; border-radius:var(--radius-sm); max-height:220px; overflow-y:auto;">
+          Loading BST traversal from C++ engine...
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal for Item Details & Mark as Recovered -->
+  <div class="modal-overlay" id="item-modal" style="display:none;" onclick="handleModalOverlayClick(event)">
+    <div class="modal-content" id="modal-content-area">
+      <!-- Filled via JS -->
+    </div>
+  </div>
+
+  <!-- Modal for Student / Admin Login -->
+  <div class="modal-overlay" id="login-modal" style="display:none;" onclick="handleLoginModalOverlayClick(event)">
+    <div class="modal-content" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="font-size:1.2rem; font-weight:800;" id="login-modal-title">Sign In / Switch Role</h3>
+        <button onclick="closeLoginModal()"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      </div>
+
+      <div class="auth-modal-tabs">
+        <button class="auth-tab-btn active" id="tab-student-btn" onclick="switchAuthTab('STUDENT')">👨‍🎓 Student
+          Sign-In</button>
+        <button class="auth-tab-btn" id="tab-admin-btn" onclick="switchAuthTab('ADMIN')">🛡️ Admin Sign-In</button>
+      </div>
+
+      <!-- Student Form -->
+      <form id="student-login-form" onsubmit="handleStudentLogin(event)">
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+          Enter your university student email or roll number to view your reported items and matching results.
+        </p>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label">University Email / ID *</label>
+          <input type="text" class="form-input" id="login-student-email" required placeholder="e.g., ali.raza@uni.edu"
+            value="ali.raza@uni.edu">
+          <span class="form-help">Sample accounts with records: ali.raza@uni.edu, sara.k@uni.edu, omar.s@uni.edu</span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Sign In as Student</button>
+      </form>
+
+      <!-- Admin Form -->
+      <form id="admin-login-form" style="display:none;" onsubmit="handleAdminLogin(event)">
+        <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+          Administrative portal for Lost &amp; Found department staff. Unlocks the entire campus database and DSA
+          diagnostics.
+        </p>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">Admin Username</label>
+          <input type="text" class="form-input" id="login-admin-user" required placeholder="admin" value="admin">
+        </div>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label">Admin Password</label>
+          <input type="password" class="form-input" id="login-admin-pass" required placeholder="••••••••"
+            value="admin123">
+          <span class="form-help">Default demo credentials: admin / admin123</span>
+        </div>
+        <button type="submit" class="btn btn-danger" style="width:100%;">Sign In as Administrator</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+
+</html>

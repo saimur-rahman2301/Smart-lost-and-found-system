@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Smart Lost & Found - Find It. Match It. Return It. (University DSA Project)">
+    <meta name="theme-color" content="#0F172A">
+    <title>Smart Lost & Found — Find It. Match It. Return It.</title>
+
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- CDN Libraries loaded before modules -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <script type="module" src="js/main.js"></script>
+</head>
+
+<body>
+    <div id="app"></div>
+    <div id="toast-container"></div>
+
+    <template id="loading-template">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </template>
+
+    <template id="error-template">
+        <div class="error-state">
+            <h3>Error</h3>
+            <p class="error-message"></p>
+            <button class="btn btn-primary retry-btn">Retry</button>
+        </div>
+    </template>
+
+    <template id="empty-template">
+        <div class="empty-state">
+            <h3>No results found</h3>
+            <p>Try adjusting your filters</p>
+        </div>
+    </template>
+</body>
+
+</html>

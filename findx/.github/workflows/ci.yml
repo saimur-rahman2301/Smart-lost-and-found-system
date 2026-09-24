@@ -1,0 +1,114 @@
+name: FindX C++ CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    name: C++ Build · Test
+    runs-on: ubuntu-24.04
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: findx
+          POSTGRES_PASSWORD: findx_test
+          POSTGRES_DB: findx_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: findx_test
+      DB_USER: findx
+      DB_PASSWORD: findx_test
+      JWT_ACCESS_SECRET: test_access_secret_at_least_32_chars_long
+      JWT_REFRESH_SECRET: test_refresh_secret_at_least_32_chars_long
+      JWT_ACCESS_EXPIRES_IN: 900
+      JWT_REFRESH_EXPIRES_IN: 604800
+      PORT: 4000
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build gcc-13 g++-13 \
+            libssl-dev libpq-dev postgresql-client \
+            git wget ca-certificates
+
+      - name: Set GCC 13 as default
+        run: |
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: cmake-deps-${{ hashFiles('CMakeLists.txt', 'server/CMakeLists.txt') }}
+
+      - name: Run DB schema
+        run: |
+          PGPASSWORD=findx_test psql -h localhost -U findx -d findx_test -f sql/init.sql
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_CXX_COMPILER=g++-13 \
+            -G Ninja
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Run engine unit tests
+        run: |
+          cd build
+          ctest --output-on-failure --timeout 60
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: build/Testing/
+
+  docker-smoke:
+    name: Docker Compose Smoke Test
+    runs-on: ubuntu-24.04
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy env
+        run: cp .env.example .env
+
+      - name: Build and start
+        run: docker compose up --build -d
+
+      - name: Wait for healthy
+        run: |
+          timeout 180 bash -c 'until curl -sf http://localhost:4000/api/v1/health; do sleep 5; done'
+
+      - name: Verify health
+        run: curl -sf http://localhost:4000/api/v1/health | grep '"status":"ok"'
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
