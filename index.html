@@ -29,12 +29,11 @@
       <!-- Primary Navigation Links -->
       <nav>
         <ul class="nav-links">
-          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">🏠 My Items</button>
+          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">📊 My Belongings</button>
           </li>
           <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button>
           </li>
-          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report
-              Found</button></li>
+          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report Found</button></li>
           <li><button class="nav-btn" id="nav-matches" onclick="switchView('matches')">🎯 Match Results</button></li>
           <!-- Admin-Only Navigation (Dynamically shown when admin logs in) -->
           <li id="nav-item-browse" style="display:none;"><button class="nav-btn" id="nav-browse"
@@ -52,10 +51,9 @@
       <div class="user-auth-box">
         <div class="user-badge student-active" id="current-user-badge">
           <span class="user-role-dot"></span>
-          <span id="current-user-label">👨‍🎓 Student</span>
+          <span id="current-user-label">👨‍🎓 <strong>Student:</strong> ali.raza@uni.edu</span>
         </div>
-        <button class="btn btn-outline btn-sm" id="auth-action-btn" onclick="openLoginModal()">🔐 Switch / Admin
-          Login</button>
+        <button class="btn btn-outline btn-sm" id="auth-action-btn" onclick="openLoginModal('ADMIN')">🔐 Admin Login</button>
       </div>
     </div>
   </header>
