@@ -46,7 +46,7 @@
 
       <!-- User Role Status & Switcher -->
       <div class="user-auth-box">
-        <div id="engine-status-badge" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:9999px; background:#f1f5f9; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:0.35rem; color:#475569;" title="System Engine Mode">
+        <div id="engine-status-badge" onclick="openBackendConfigModal()" style="font-size:0.75rem; padding:0.25rem 0.6rem; border-radius:9999px; background:#f1f5f9; border:1px solid #e2e8f0; display:inline-flex; align-items:center; gap:0.35rem; color:#475569; cursor:pointer;" title="Click to view or connect C++ Backend URL">
           <span id="engine-dot" style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block;"></span>
           <span id="engine-label">Checking Engine...</span>
         </div>
@@ -588,6 +588,43 @@
         </div>
         <button type="submit" class="btn btn-danger" style="width:100%;">Sign In as Administrator</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Backend Configuration Modal -->
+  <div id="backend-modal" class="modal-overlay" onclick="handleBackendModalOverlay(event)" style="display:none;">
+    <div class="modal-card" style="max-width:480px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+        <h3 style="margin:0; font-size:1.15rem; font-weight:700;">⚙️ Backend Server Connection</h3>
+        <button onclick="closeBackendConfigModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      </div>
+
+      <div style="margin-bottom:1rem; padding:0.85rem; border-radius:var(--radius-sm); background:var(--bg-subtle, #f8fafc); border:1px solid var(--border, #e2e8f0); font-size:0.85rem;">
+        <div><strong>Current Mode:</strong> <span id="modal-engine-mode-text">Checking...</span></div>
+        <p style="margin:0.35rem 0 0 0; color:var(--text-secondary); font-size:0.8rem;">
+          On GitHub Pages, the in-browser DSA engine runs automatically. If you want to connect this live site directly to your local C++ Winsock server, enter an HTTPS tunnel or cloud server URL below.
+        </p>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label class="form-label">C++ Backend Server URL</label>
+        <input type="text" class="form-input" id="custom-backend-url" placeholder="e.g. https://xxxx.loca.lt or https://xxxx.ngrok-free.app">
+        <span class="form-help">Leave empty to use automatic local/in-browser engine.</span>
+      </div>
+
+      <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+        <button type="button" class="btn btn-outline btn-sm" onclick="resetBackendToAuto()">Reset to Default</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveAndTestBackendUrl()">Connect &amp; Test</button>
+      </div>
+
+      <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.75rem; color:var(--text-muted);">
+        <strong>💡 How to link your local PC C++ server to GitHub Pages:</strong>
+        <ol style="margin:0.35rem 0 0 1.25rem; padding:0;">
+          <li>Run <code>run_system.bat</code> on your PC (port 8080).</li>
+          <li>In a terminal, run: <code>npx localtunnel --port 8080</code> (or <code>ngrok http 8080</code>).</li>
+          <li>Paste the generated <code>https://...</code> URL above and click Connect!</li>
+        </ol>
+      </div>
     </div>
   </div>
 
