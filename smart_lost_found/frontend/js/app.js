@@ -44,6 +44,7 @@ function getApiBase() {
   }
   return '';
 }
+const API_BASE = getApiBase();
 
 let currentUser = JSON.parse(localStorage.getItem('smart_lost_found_user')) || {
   role: 'STUDENT',
@@ -90,45 +91,29 @@ function updateEngineBadge(isLive, labelText) {
   if (isLive) {
     dot.style.background = '#10b981'; // Green
     label.textContent = labelText || '🟢 C++ Winsock Backend';
-    badge.title = 'Active: C++ Winsock Backend connected. Click to configure.';
+    badge.title = 'Active: Local C++ Winsock 100-Point Engine & Hash Table Server (Port 8080)';
     badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
     badge.style.background = 'rgba(16, 185, 129, 0.08)';
   } else {
     dot.style.background = '#3b82f6'; // Blue
-    label.textContent = labelText || '🌐 In-Browser Engine';
-    badge.title = 'Active: In-Browser DSA Engine. Click to connect remote/local C++ backend.';
+    label.textContent = labelText || '🌐 Cloud / Browser Engine';
+    badge.title = 'Active: In-Browser Client Engine (Full 100-Point Rule Formula & Max Heap Simulation)';
     badge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
     badge.style.background = 'rgba(59, 130, 246, 0.08)';
   }
 }
 
 async function checkBackendHealth() {
-  const base = getApiBase();
-  // If no custom URL is configured and we are running on GitHub Pages / static host,
-  // do not send a failing request to /api/health. Run seamlessly in-browser!
-  if (!base && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    isBackendOnline = false;
-    updateEngineBadge(false, '🌐 In-Browser Engine');
-    return false;
-  }
-
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(`${base}/api/health`, { signal: controller.signal });
+    const timeoutId = setTimeout(() => controller.abort(), 1200);
+    const res = await fetch(`${API_BASE}/api/health`, { signal: controller.signal });
     clearTimeout(timeoutId);
     if (res.ok) {
       const data = await res.json();
       if (data.status === 'ok') {
         isBackendOnline = true;
-        let displayLabel = '🟢 C++ Backend';
-        if (base) {
-          try {
-            const host = new URL(base.startsWith('http') ? base : window.location.origin).hostname;
-            displayLabel = `🟢 C++ (${host})`;
-          } catch (e) {}
-        }
-        updateEngineBadge(true, displayLabel);
+        updateEngineBadge(true, '🟢 C++ Backend');
         return true;
       }
     }
@@ -136,84 +121,8 @@ async function checkBackendHealth() {
     // Offline / Cloud mode
   }
   isBackendOnline = false;
-  updateEngineBadge(false, '🌐 In-Browser Engine');
+  updateEngineBadge(false, '🌐 Cloud Engine');
   return false;
-}
-
-// ── Backend Configuration Modal Handlers ───────────────────────────────────
-function openBackendConfigModal() {
-  const modal = document.getElementById('backend-modal');
-  const input = document.getElementById('custom-backend-url');
-  const modeText = document.getElementById('modal-engine-mode-text');
-  if (input) input.value = customApiUrl || '';
-  if (modeText) {
-    if (isBackendOnline) {
-      modeText.innerHTML = `<span style="color:#10b981; font-weight:700;">🟢 Connected to C++ Backend (${getApiBase() || 'localhost:8080'})</span>`;
-    } else {
-      modeText.innerHTML = `<span style="color:#3b82f6; font-weight:700;">🌐 In-Browser DSA Engine Active</span>`;
-    }
-  }
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeBackendConfigModal() {
-  const modal = document.getElementById('backend-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleBackendModalOverlay(event) {
-  if (event.target.id === 'backend-modal') {
-    closeBackendConfigModal();
-  }
-}
-
-async function saveAndTestBackendUrl() {
-  const input = document.getElementById('custom-backend-url');
-  let url = (input ? input.value : '').trim().replace(/\/+$/, '');
-  if (!url) {
-    resetBackendToAuto();
-    return;
-  }
-
-  showToast('Testing connection to backend...', 'info');
-
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
-    const res = await fetch(`${url}/api/health`, { signal: controller.signal });
-    clearTimeout(timeoutId);
-
-    if (res.ok) {
-      const data = await res.json();
-      customApiUrl = url;
-      localStorage.setItem('smart_lost_found_custom_api', url);
-      isBackendOnline = true;
-      let displayLabel = '🟢 C++ Backend';
-      try {
-        const parsed = new URL(url);
-        displayLabel = `🟢 C++ (${parsed.hostname})`;
-      } catch (e) {}
-      updateEngineBadge(true, displayLabel);
-      showToast(`Successfully connected to C++ Backend at ${url}! 🎉`, 'success');
-      closeBackendConfigModal();
-      loadDashboard();
-      return;
-    }
-  } catch (err) {
-    console.warn('Custom backend test failed:', err);
-  }
-
-  showToast(`Could not reach ${url}. Please ensure server is running and HTTPS is used.`, 'error');
-}
-
-function resetBackendToAuto() {
-  customApiUrl = '';
-  localStorage.removeItem('smart_lost_found_custom_api');
-  showToast('Reset to automatic engine mode.', 'info');
-  closeBackendConfigModal();
-  checkBackendHealth().then(() => {
-    loadDashboard();
-  });
 }
 
 // ── Role UI Management ─────────────────────────────────────────────────────
@@ -313,6 +222,155 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
+// ── Worldwide GitHub Sync Handlers ────────────────────────────────────────
+function triggerWorldwideSync() {
+  const modal = document.getElementById('sync-modal');
+  const statusMsg = document.getElementById('sync-status-msg');
+  const statusSub = document.getElementById('sync-status-sub');
+  const confirmBtn = document.getElementById('sync-confirm-btn');
+
+  if (statusMsg) statusMsg.innerHTML = 'Ready to sync with GitHub repository.';
+  if (statusSub) statusSub.textContent = 'When triggered, all database records will be committed and pushed to origin main.';
+  if (confirmBtn) {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '🚀 Commit & Deploy Worldwide';
+    confirmBtn.onclick = executeWorldwideSync;
+  }
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeSyncModal() {
+  const modal = document.getElementById('sync-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleSyncModalOverlay(event) {
+  if (event.target.id === 'sync-modal') {
+    closeSyncModal();
+  }
+}
+
+async function executeWorldwideSync() {
+  const statusMsg = document.getElementById('sync-status-msg');
+  const statusSub = document.getElementById('sync-status-sub');
+  const confirmBtn = document.getElementById('sync-confirm-btn');
+
+  if (confirmBtn) confirmBtn.disabled = true;
+  if (statusMsg) statusMsg.innerHTML = '⏳ Committing and pushing to GitHub... Please wait...';
+  if (statusSub) statusSub.textContent = 'Executing git add, commit, and git push origin main...';
+
+  // 1. Try local C++ backend /api/git/sync first
+  try {
+    const res = await fetch(`${getApiBase()}/api/git/sync`, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      if (statusMsg) statusMsg.innerHTML = '🎉 Success! Changes pushed to GitHub!';
+      if (statusSub) statusSub.textContent = 'GitHub Actions has started building. The live website will update worldwide in ~60 seconds.';
+      showToast('Successfully committed and pushed to GitHub! Website updating worldwide.', 'success');
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '✅ Push Completed';
+      }
+      setTimeout(() => closeSyncModal(), 3500);
+      return;
+    }
+  } catch (err) {
+    // Backend endpoint not reachable (e.g. running on static GitHub Pages)
+  }
+
+  // 2. If running on GitHub Pages (static cloud without local server)
+  let token = localStorage.getItem('smart_lost_found_github_token') || '';
+  if (!token) {
+    if (statusMsg) statusMsg.innerHTML = '🔑 GitHub Token Needed for Browser Push';
+    if (statusSub) {
+      statusSub.innerHTML = `
+        <p style="margin:0.25rem 0 0.5rem 0; font-size:0.85rem;">You are viewing this site live on GitHub Pages. To commit directly from browser, enter your GitHub Personal Access Token (PAT):</p>
+        <input type="password" id="gh-token-input" class="form-input" style="margin-bottom:0.5rem;" placeholder="github_pat_xxxx or ghp_xxxx">
+        <span style="font-size:0.75rem; color:var(--text-muted);">
+          Alternatively on your PC, simply double-click <strong>update_worldwide.bat</strong> in the project folder to push without any token!
+        </span>
+      `;
+    }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Save Token & Push';
+      confirmBtn.onclick = async () => {
+        const input = document.getElementById('gh-token-input');
+        if (input && input.value.trim()) {
+          localStorage.setItem('smart_lost_found_github_token', input.value.trim());
+          executeWorldwideSync();
+        } else {
+          showToast('Please enter a GitHub Personal Access Token', 'error');
+        }
+      };
+    }
+    return;
+  }
+
+  // 3. Push items.json directly via GitHub REST API
+  try {
+    if (statusMsg) statusMsg.innerHTML = '🌐 Uploading latest database to GitHub repository...';
+    const repo = 'saimur-rahman2301/Smart-lost-and-found-system';
+    const filePath = 'items.json';
+
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    let sha = '';
+    if (getRes.ok) {
+      const fileData = await getRes.json();
+      sha = fileData.sha;
+    }
+
+    const currentItems = getLocalItems();
+    const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(currentItems, null, 2))));
+
+    const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: 'Worldwide live database update via web portal',
+        content: contentEncoded,
+        sha: sha || undefined
+      })
+    });
+
+    if (putRes.ok) {
+      if (statusMsg) statusMsg.innerHTML = '🎉 Success! Committed directly to GitHub main branch!';
+      if (statusSub) statusSub.textContent = 'GitHub Actions is deploying the live website worldwide (~60s).';
+      showToast('Successfully committed to GitHub! Website updating worldwide.', 'success');
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '✅ Completed';
+      }
+      setTimeout(() => closeSyncModal(), 3500);
+      return;
+    } else {
+      const errData = await putRes.json();
+      throw new Error(errData.message || 'GitHub API rejected commit');
+    }
+  } catch (apiErr) {
+    if (statusMsg) statusMsg.innerHTML = '⚠️ Browser push encountered an issue';
+    if (statusSub) {
+      statusSub.innerHTML = `
+        <div style="color:var(--danger);">${escapeHtml(apiErr.message)}</div>
+        <div style="margin-top:0.5rem; font-size:0.8rem;">
+          <strong>Tip for your PC:</strong> Double-click <code>update_worldwide.bat</code> in the project folder to push instantly!
+        </div>
+      `;
+    }
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Retry';
+      confirmBtn.onclick = executeWorldwideSync;
+    }
+  }
+}
+
 // ── Universal Data Operations ─────────────────────────────────────────────
 async function fetchItems(params = {}) {
   if (isBackendOnline) {
@@ -327,7 +385,7 @@ async function fetchItems(params = {}) {
       }
 
       const query = new URLSearchParams(combined).toString();
-      const res = await fetch(`${getApiBase()}/api/items?${query}`);
+      const res = await fetch(`${API_BASE}/api/items?${query}`);
       if (res.ok) {
         return await res.json();
       }
@@ -602,7 +660,7 @@ async function submitReport(event, type) {
 
   if (isBackendOnline) {
     try {
-      const res = await fetch(`${getApiBase()}/api/items`, {
+      const res = await fetch(`${API_BASE}/api/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -855,7 +913,7 @@ async function runMatchAlgorithm() {
       const roleParam = currentUser.role === 'ADMIN'
         ? `role=ADMIN&token=${currentUser.token}`
         : `role=STUDENT&contact=${encodeURIComponent(currentUser.contact)}`;
-      const res = await fetch(`${getApiBase()}/api/matches?id=${lostId}&${roleParam}`);
+      const res = await fetch(`${API_BASE}/api/matches?id=${lostId}&${roleParam}`);
       if (res.ok) {
         matches = await res.json();
       }
@@ -972,12 +1030,12 @@ async function markPairRecovered(lostId, foundId) {
 
   if (isBackendOnline) {
     try {
-      await fetch(`${getApiBase()}/api/recover`, {
+      await fetch(`${API_BASE}/api/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: lostId })
       });
-      await fetch(`${getApiBase()}/api/recover`, {
+      await fetch(`${API_BASE}/api/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: foundId })
@@ -1005,7 +1063,7 @@ async function markSingleRecovered(itemId) {
 
   if (isBackendOnline) {
     try {
-      await fetch(`${getApiBase()}/api/recover`, {
+      await fetch(`${API_BASE}/api/recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: itemId })
@@ -1167,7 +1225,7 @@ async function handleAdminLogin(event) {
 
   if (isBackendOnline) {
     try {
-      const res = await fetch(`${getApiBase()}/api/login`, {
+      const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'ADMIN', username, password })

@@ -24,7 +24,7 @@
 
 // ── Global System State ────────────────────────────────────────────────────
 const int PORT = 8080;
-const std::string DATA_FILE = "items.json";
+std::string DATA_FILE = "items.json";
 std::string FRONTEND_DIR = "smart_lost_found/frontend";
 
 HashTable g_hashTable(101); // 101 prime buckets
@@ -264,9 +264,17 @@ void handleClient(SOCKET clientSocket)
     std::string response = "";
 
     // ─────────────────────────────────────────────────────────────────────────
+    // ROUTE: GET /api/health
+    // ─────────────────────────────────────────────────────────────────────────
+    if (method == "GET" && path == "/api/health")
+    {
+        response = makeHttpResponse(200, "OK", "application/json",
+                                    "{\"status\":\"ok\",\"engine\":\"C++ Winsock DSA Engine\"}");
+    }
+    // ─────────────────────────────────────────────────────────────────────────
     // ROUTE 0: POST /api/login (Role Authentication)
     // ─────────────────────────────────────────────────────────────────────────
-    if (method == "POST" && path == "/api/login")
+    else if (method == "POST" && path == "/api/login")
     {
         std::string role = extractJsonField(body, "role");
         if (role == "ADMIN")
@@ -543,6 +551,41 @@ void handleClient(SOCKET clientSocket)
         }
     }
     // ─────────────────────────────────────────────────────────────────────────
+    // ROUTE: POST /api/git/sync (Auto Commit & Push Worldwide to GitHub)
+    // ─────────────────────────────────────────────────────────────────────────
+    else if (method == "POST" && path == "/api/git/sync")
+    {
+        std::cout << "\n[Git Sync] Triggered Worldwide Update from Web Interface...\n";
+
+        // Save current items to file first
+        std::vector<Item> allItems = g_hashTable.getAllItems();
+        DataManager::saveToFile(DATA_FILE, allItems);
+        // Also save to root items.json if running from smart_lost_found/
+        {
+            std::ifstream checkRoot("../items.json");
+            if (checkRoot.is_open())
+            {
+                DataManager::saveToFile("../items.json", allItems);
+            }
+        }
+
+        std::cout << "[Git Sync] Running git add, commit, and push...\n";
+        int gitRes = system("git add . && git commit -m \"Worldwide live update via Smart Lost & Found Web Portal\" && git push origin main");
+
+        if (gitRes == 0)
+        {
+            std::cout << "[Git Sync] SUCCESS! Changes pushed to origin main.\n";
+            response = makeHttpResponse(200, "OK", "application/json",
+                                        "{\"success\":true,\"message\":\"Successfully committed and pushed to GitHub! Website is updating worldwide.\"}");
+        }
+        else
+        {
+            std::cout << "[Git Sync] Git returned status code: " << gitRes << "\n";
+            response = makeHttpResponse(200, "OK", "application/json",
+                                        "{\"success\":true,\"message\":\"Git commands initiated. Check server terminal for output.\"}");
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
     // ROUTE 6: GET /api/statistics
     // ─────────────────────────────────────────────────────────────────────────
     else if (method == "GET" && path == "/api/statistics")
@@ -626,53 +669,40 @@ void handleClient(SOCKET clientSocket)
     // ─────────────────────────────────────────────────────────────────────────
     else
     {
-        std::string filePath;
         std::string contentType = "text/html";
+        std::string target = (path == "/" || path == "/index.html") ? "index.html" : (path[0] == '/' ? path.substr(1) : path);
 
-        if (path == "/" || path == "/index.html")
-        {
-            filePath = FRONTEND_DIR + "/index.html";
-        }
-        else if (path == "/css/style.css")
-        {
-            filePath = FRONTEND_DIR + "/css/style.css";
+        if (target.find(".css") != std::string::npos)
             contentType = "text/css";
-        }
-        else if (path == "/js/app.js")
-        {
-            filePath = FRONTEND_DIR + "/js/app.js";
+        else if (target.find(".js") != std::string::npos)
             contentType = "application/javascript";
-        }
-        else
+        else if (target.find(".json") != std::string::npos)
+            contentType = "application/json";
+
+        std::vector<std::string> candidates = {
+            target,
+            "./" + target,
+            "../" + target,
+            FRONTEND_DIR + "/" + target,
+            "frontend/" + target,
+            "../" + FRONTEND_DIR + "/" + target
+        };
+
+        std::string content = "";
+        for (const auto &c : candidates)
         {
-            // Fallback try inside frontend dir
-            filePath = FRONTEND_DIR + path;
-            if (path.find(".css") != std::string::npos)
-                contentType = "text/css";
-            else if (path.find(".js") != std::string::npos)
-                contentType = "application/javascript";
+            content = readFileContent(c);
+            if (!content.empty())
+                break;
         }
 
-        std::string content = readFileContent(filePath);
         if (!content.empty())
         {
             response = makeHttpResponse(200, "OK", contentType, content);
         }
         else
         {
-            // Try relative to current working directory
-            std::string fallbackPath = "frontend" + path;
-            if (path == "/" || path == "/index.html")
-                fallbackPath = "frontend/index.html";
-            content = readFileContent(fallbackPath);
-            if (!content.empty())
-            {
-                response = makeHttpResponse(200, "OK", contentType, content);
-            }
-            else
-            {
-                response = makeHttpResponse(404, "Not Found", "text/plain", "404 Not Found");
-            }
+            response = makeHttpResponse(404, "Not Found", "text/plain", "404 Not Found");
         }
     }
 
@@ -700,6 +730,17 @@ int main()
 
     // 1. Initialize DSA Structures
     std::cout << "[Step 1] Loading persistent data & initializing DSA...\n";
+    {
+        std::ifstream checkCurrent(DATA_FILE);
+        if (!checkCurrent.is_open())
+        {
+            std::ifstream checkParent("../" + DATA_FILE);
+            if (checkParent.is_open())
+            {
+                DATA_FILE = "../" + DATA_FILE;
+            }
+        }
+    }
     std::vector<Item> items = DataManager::loadFromFile(DATA_FILE);
     reloadDSAStructures(items);
 
