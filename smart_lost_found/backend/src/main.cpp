@@ -149,8 +149,11 @@ std::string makeHttpResponse(int statusCode, const std::string &statusText,
     response << "HTTP/1.1 " << statusCode << " " << statusText << "\r\n"
              << "Content-Type: " << contentType << "; charset=UTF-8\r\n"
              << "Content-Length: " << body.length() << "\r\n"
+             << "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+             << "Pragma: no-cache\r\n"
+             << "Expires: 0\r\n"
              << "Access-Control-Allow-Origin: *\r\n"
-             << "Access-Control-Allow-Methods: GET, POST, OPTIONS\r\n"
+             << "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
              << "Access-Control-Allow-Headers: Content-Type\r\n"
              << "Connection: close\r\n\r\n"
              << body;
