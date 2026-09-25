@@ -15,69 +15,8 @@
 
 <body>
 
-  <!-- ===================================================================
-       STARTING GATEWAY LOGIN PAGE (Mandatory Entry Before Website)
-       =================================================================== -->
-  <div id="starting-login-screen" class="starting-login-wrapper" style="display:flex;">
-    <div class="starting-login-card">
-      <div class="starting-brand-header">
-        <div class="starting-brand-icon">🔍</div>
-        <h1 class="starting-brand-title">SMART LOST &amp; FOUND</h1>
-        <p class="starting-brand-subtitle">University Property Matching &amp; Recovery System &bull; Powered by DSA Engine</p>
-      </div>
-
-      <!-- Portal Selector Tabs -->
-      <div class="starting-tabs">
-        <button type="button" class="starting-tab-btn active" id="start-tab-student" onclick="switchStartTab('STUDENT')">
-          👨‍🎓 Student Portal
-        </button>
-        <button type="button" class="starting-tab-btn" id="start-tab-admin" onclick="switchStartTab('ADMIN')">
-          🛡️ Admin Portal
-        </button>
-      </div>
-
-      <!-- Student Portal Form -->
-      <form id="start-student-form" onsubmit="handleStartStudentLogin(event)">
-        <div class="start-form-desc">
-          <strong>👨‍🎓 Student Access:</strong> Enter your university student email or ID to access your personal belongings, report lost/found items, and check match scores.
-        </div>
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">University Email / Student ID *</label>
-          <input type="text" class="form-input" id="start-student-email" required placeholder="e.g., ali.raza@uni.edu" value="ali.raza@uni.edu">
-          <span class="form-help">Sample accounts: <code>ali.raza@uni.edu</code>, <code>sara.k@uni.edu</code>, <code>omar.s@uni.edu</code></span>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700;">
-          🚀 Enter Website as Student
-        </button>
-      </form>
-
-      <!-- Admin Portal Form -->
-      <form id="start-admin-form" style="display:none;" onsubmit="handleStartAdminLogin(event)">
-        <div class="start-form-desc">
-          <strong>🛡️ Administrator Access:</strong> Lost &amp; Found department staff portal for campus-wide items management and worldwide live deployment.
-        </div>
-        <div class="form-group" style="margin-bottom:1rem;">
-          <label class="form-label">Admin Username</label>
-          <input type="text" class="form-input" id="start-admin-user" required placeholder="admin" value="admin">
-        </div>
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">Admin Password</label>
-          <input type="password" class="form-input" id="start-admin-pass" required placeholder="••••••••" value="admin123">
-          <span class="form-help">Default demo credentials: <code>admin</code> / <code>admin123</code></span>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700; background: linear-gradient(135deg, #2563eb, #7c3aed); border:none;">
-          🔐 Enter Website as Administrator
-        </button>
-      </form>
-
-      <div class="start-card-footer">
-        <span>RUET ECE 2104 Data Structures &amp; Algorithms Project</span>
-      </div>
-    </div>
-  </div>
-
   <!-- Top Navigation Bar -->
-  <header class="navbar" id="app-header" style="display:none;">
+  <header class="navbar">
     <div class="nav-container">
       <a href="#dashboard" class="brand-logo" onclick="switchView('dashboard')">
         <div class="brand-icon">🔍</div>
@@ -90,13 +29,18 @@
       <!-- Primary Navigation Links -->
       <nav>
         <ul class="nav-links">
-          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">📊 My Belongings</button></li>
-          <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button></li>
-          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report Found</button></li>
+          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">🏠 My Items</button>
+          </li>
+          <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button>
+          </li>
+          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report
+              Found</button></li>
           <li><button class="nav-btn" id="nav-matches" onclick="switchView('matches')">🎯 Match Results</button></li>
           <!-- Admin-Only Navigation (Dynamically shown when admin logs in) -->
           <li id="nav-item-browse" style="display:none;"><button class="nav-btn" id="nav-browse"
               onclick="switchView('browse')">🔍 Browse All Items</button></li>
+          <li id="nav-item-stats" style="display:none;"><button class="nav-btn" id="nav-stats"
+              onclick="switchView('stats')">📈 DSA Engine &amp; Stats</button></li>
           <li id="nav-item-sync" style="display:none;"><button class="btn btn-primary btn-sm" id="btn-sync-worldwide"
               onclick="triggerWorldwideSync()" title="Commit changes &amp; deploy to GitHub worldwide"
               style="background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; border-radius: var(--radius-sm, 6px); color: white; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25);">
@@ -108,15 +52,16 @@
       <div class="user-auth-box">
         <div class="user-badge student-active" id="current-user-badge">
           <span class="user-role-dot"></span>
-          <span id="current-user-label">👨‍🎓 <strong>Student:</strong> ali.raza@uni.edu</span>
+          <span id="current-user-label">👨‍🎓 Student</span>
         </div>
-        <button class="btn btn-outline btn-sm" id="auth-action-btn" onclick="handleSignOut()">🚪 Sign Out</button>
+        <button class="btn btn-outline btn-sm" id="auth-action-btn" onclick="openLoginModal()">🔐 Switch / Admin
+          Login</button>
       </div>
     </div>
   </header>
 
   <!-- Main Content Container -->
-  <main class="main-wrapper" id="app-main" style="display:none;">
+  <main class="main-wrapper">
 
     <!-- ===================================================================
          VIEW 1: DASHBOARD (HOME)
