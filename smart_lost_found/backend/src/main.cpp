@@ -61,27 +61,6 @@ void saveAllItemsToAllLocations(const std::vector<Item> &items)
     }
 }
 
-// Windows thread to run git commit & push asynchronously in background without blocking HTTP response
-DWORD WINAPI GitSyncThread(LPVOID lpParam)
-{
-    std::string *msgPtr = static_cast<std::string*>(lpParam);
-    std::string msg = msgPtr ? *msgPtr : "Worldwide live update via Smart Lost & Found Web Portal";
-    if (msgPtr) delete msgPtr;
-
-    std::cout << "\n[Git Sync Background] Auto commit & push starting: " << msg << "...\n";
-    std::string cmd = "git add . && git commit -m \"" + msg + "\" && git push origin main";
-    int r = system(cmd.c_str());
-    if (r == 0)
-    {
-        std::cout << "[Git Sync Background] SUCCESS! Pushed to origin main successfully.\n";
-    }
-    else
-    {
-        std::cout << "[Git Sync Background] Git exited with code: " << r << "\n";
-    }
-    return 0;
-}
-
 // Helper: Read entire file content into string
 std::string readFileContent(const std::string &filepath)
 {
@@ -504,10 +483,6 @@ void handleClient(SOCKET clientSocket)
         std::cout << "[DSA Server] Stored new " << typeStr << " item: " << newItem.name
                   << " (ID: " << newItem.id << ") into Hash Table & BST.\n";
 
-        // Asynchronously auto-commit and push newly reported item to GitHub worldwide
-        std::string *msgParam = new std::string("Worldwide Auto-Sync: New " + typeStr + " reported (" + newItem.name + ")");
-        CreateThread(NULL, 0, GitSyncThread, msgParam, 0, NULL);
-
         response = makeHttpResponse(201, "Created", "application/json", newItem.toJson());
     }
     // ─────────────────────────────────────────────────────────────────────────
@@ -586,8 +561,6 @@ void handleClient(SOCKET clientSocket)
 
             saveAllItemsToAllLocations(g_hashTable.getAllItems());
             std::cout << "[DSA Server] Item " << itemId << " marked as RECOVERED!\n";
-            std::string *msgParam = new std::string("Worldwide Auto-Sync: Item " + itemId + " marked as RECOVERED");
-            CreateThread(NULL, 0, GitSyncThread, msgParam, 0, NULL);
             response = makeHttpResponse(200, "OK", "application/json", "{\"success\":true}");
         }
         else
@@ -664,20 +637,27 @@ void handleClient(SOCKET clientSocket)
     // ─────────────────────────────────────────────────────────────────────────
     else if (method == "POST" && path == "/api/git/sync")
     {
-        std::string syncMsg = extractJsonField(body, "message");
-        if (syncMsg.empty()) syncMsg = "Worldwide live update via Smart Lost & Found Web Portal";
-
-        std::cout << "\n[Git Sync] Triggered Worldwide Update: " << syncMsg << "\n";
+        std::cout << "\n[Git Sync] Triggered Worldwide Update from Web Interface...\n";
 
         // Save current items to file first across all locations
         std::vector<Item> allItems = g_hashTable.getAllItems();
         saveAllItemsToAllLocations(allItems);
 
-        std::string *msgParam = new std::string(syncMsg);
-        CreateThread(NULL, 0, GitSyncThread, msgParam, 0, NULL);
+        std::cout << "[Git Sync] Running git add, commit, and push...\n";
+        int gitRes = system("git add . && git commit -m \"Worldwide live update via Smart Lost & Found Web Portal\" && git push origin main");
 
-        response = makeHttpResponse(200, "OK", "application/json",
-                                    "{\"success\":true,\"message\":\"Successfully initiated Git commit and push to origin main! Website is updating worldwide.\"}");
+        if (gitRes == 0)
+        {
+            std::cout << "[Git Sync] SUCCESS! Changes pushed to origin main.\n";
+            response = makeHttpResponse(200, "OK", "application/json",
+                                        "{\"success\":true,\"message\":\"Successfully committed and pushed to GitHub! Website is updating worldwide.\"}");
+        }
+        else
+        {
+            std::cout << "[Git Sync] Git returned status code: " << gitRes << "\n";
+            response = makeHttpResponse(200, "OK", "application/json",
+                                        "{\"success\":true,\"message\":\"Git commands initiated. Check server terminal for output.\"}");
+        }
     }
     // ─────────────────────────────────────────────────────────────────────────
     // ROUTE 6: GET /api/statistics

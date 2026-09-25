@@ -602,69 +602,6 @@ function handleSyncModalOverlay(event) {
   }
 }
 
-// ── Universal Worldwide Commit & Push Orchestrator ─────────────────────────
-async function triggerWorldwideGitSync(commitMessage = 'Worldwide live update via Smart Lost & Found Web Portal') {
-  const currentItems = getLocalItems();
-
-  // 1. Instantly push to Worldwide Cloud Database (Cloudflare Edge, sub-50ms)
-  await pushToWorldwideCloudDatabase(currentItems);
-
-  // 2. Try C++ Winsock backend /api/git/sync if available
-  try {
-    const res = await fetch(`${getApiBase()}/api/git/sync`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: commitMessage })
-    });
-    if (res.ok) {
-      console.log('[Worldwide Sync] Git commit & push triggered via C++ backend.');
-      return { success: true, channel: 'backend' };
-    }
-  } catch (e) {
-    // Backend offline / static mode
-  }
-
-  // 3. If running on GitHub Pages / Vercel, push directly via GitHub REST API if token exists
-  const token = localStorage.getItem('smart_lost_found_github_token') || '';
-  if (token) {
-    try {
-      const repo = 'saimur-rahman2301/Smart-lost-and-found-system';
-      const filePath = 'items.json';
-
-      const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      let sha = '';
-      if (getRes.ok) {
-        const fileData = await getRes.json();
-        sha = fileData.sha;
-      }
-
-      const contentEncoded = btoa(unescape(encodeURIComponent(JSON.stringify(currentItems, null, 2))));
-      const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: commitMessage,
-          content: contentEncoded,
-          sha: sha || undefined
-        })
-      });
-      if (putRes.ok) {
-        console.log('[Worldwide Sync] GitHub API direct commit & push completed.');
-        return { success: true, channel: 'github_api' };
-      }
-    } catch (e) {
-      console.warn('[Worldwide Sync] GitHub API direct commit failed:', e);
-    }
-  }
-
-  return { success: true, channel: 'cloud' };
-}
-
 async function executeWorldwideSync() {
   const statusMsg = document.getElementById('sync-status-msg');
   const statusSub = document.getElementById('sync-status-sub');
@@ -1066,101 +1003,83 @@ async function submitReport(event, type) {
   event.preventDefault();
 
   const prefix = type === 'LOST' ? 'lost' : 'found';
-  const formEl = document.getElementById(`form-${prefix}`);
-  const submitBtn = formEl ? formEl.querySelector('button[type="submit"]') : null;
-  const originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
-  if (submitBtn) {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '⏳ Submitting &amp; Syncing Worldwide (Commit-Push)...';
+  const name = document.getElementById(`${prefix}-name`).value.trim();
+  const category = document.getElementById(`${prefix}-category`).value;
+  const color = document.getElementById(`${prefix}-color`).value.trim();
+  const brand = document.getElementById(`${prefix}-brand`).value.trim() || 'Generic';
+  const location = document.getElementById(`${prefix}-location`).value;
+  const date = document.getElementById(`${prefix}-date`).value;
+  const contact = document.getElementById(`${prefix}-contact`).value.trim();
+  const keywords = document.getElementById(`${prefix}-keywords`).value.trim();
+  const description = document.getElementById(`${prefix}-description`).value.trim();
+
+  const localItems = getLocalItems();
+
+  // Find max numerical ID among items with this prefix to avoid collisions across sessions
+  let maxNum = 0;
+  localItems.forEach(it => {
+    if (it && it.id && it.id.startsWith(type + '_')) {
+      const numPart = parseInt(it.id.replace(type + '_', ''), 10);
+      if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+    }
+  });
+  const generatedId = `${type}_${maxNum + 1}`;
+
+  const payload = {
+    id: generatedId,
+    type,
+    name,
+    category,
+    color,
+    brand,
+    location,
+    date,
+    contact: contact || (currentUser ? currentUser.contact : ''),
+    reportedBy: currentUser ? (currentUser.contact || currentUser.email || 'RUET Student') : (contact || ''),
+    reporterRoll: currentUser ? (currentUser.roll || '') : '',
+    reportedAt: new Date().toISOString(),
+    keywords,
+    description,
+    status: 'ACTIVE'
+  };
+
+  let createdItem = payload;
+
+  if (isBackendOnline) {
+    try {
+      const res = await fetch(`${API_BASE}/api/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.id) createdItem = data;
+      }
+    } catch (e) {
+      console.warn('Backend write failed, saving locally.');
+    }
   }
 
-  try {
-    const name = document.getElementById(`${prefix}-name`).value.trim();
-    const category = document.getElementById(`${prefix}-category`).value;
-    const color = document.getElementById(`${prefix}-color`).value.trim();
-    const brand = document.getElementById(`${prefix}-brand`).value.trim() || 'Generic';
-    const location = document.getElementById(`${prefix}-location`).value;
-    const date = document.getElementById(`${prefix}-date`).value;
-    const contact = document.getElementById(`${prefix}-contact`).value.trim();
-    const keywords = document.getElementById(`${prefix}-keywords`).value.trim();
-    const description = document.getElementById(`${prefix}-description`).value.trim();
+  // Always persist locally for permanent client session
+  localItems.unshift(createdItem);
+  saveLocalItems(localItems);
+  pushToWorldwideCloudDatabase(localItems);
 
-    const localItems = getLocalItems();
+  showToast(`Successfully reported ${type.toLowerCase()} item! (ID: ${createdItem.id})`, 'success');
+  document.getElementById(`form-${prefix}`).reset();
 
-    // Find max numerical ID among items with this prefix to avoid collisions across sessions
-    let maxNum = 0;
-    localItems.forEach(it => {
-      if (it && it.id && it.id.startsWith(type + '_')) {
-        const numPart = parseInt(it.id.replace(type + '_', ''), 10);
-        if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
-      }
-    });
-    const generatedId = `${type}_${maxNum + 1}`;
+  if (currentUser && currentUser.role === 'STUDENT') {
+    const contactEl = document.getElementById(`${prefix}-contact`);
+    if (contactEl) contactEl.value = currentUser.contact;
+  }
 
-    const payload = {
-      id: generatedId,
-      type,
-      name,
-      category,
-      color,
-      brand,
-      location,
-      date,
-      contact: contact || (currentUser ? currentUser.contact : ''),
-      reportedBy: currentUser ? (currentUser.contact || currentUser.email || 'RUET Student') : (contact || ''),
-      reporterRoll: currentUser ? (currentUser.roll || '') : '',
-      reportedAt: new Date().toISOString(),
-      keywords,
-      description,
-      status: 'ACTIVE'
-    };
-
-    let createdItem = payload;
-
-    if (isBackendOnline) {
-      try {
-        const res = await fetch(`${API_BASE}/api/items`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.id) createdItem = data;
-        }
-      } catch (e) {
-        console.warn('Backend write failed, saving locally.');
-      }
-    }
-
-    // Always persist locally for permanent client session
-    localItems.unshift(createdItem);
-    saveLocalItems(localItems);
-
-    // Trigger worldwide auto-sync & Git commit-push at a time
-    const syncMsg = `Worldwide Auto-Sync: New ${type.toLowerCase()} item reported (${createdItem.name} [ID: ${createdItem.id}])`;
-    await triggerWorldwideGitSync(syncMsg);
-
-    showToast(`Successfully reported ${type.toLowerCase()} item! (ID: ${createdItem.id}) 🚀 Worldwide auto commit-push initiated!`, 'success');
-    if (formEl) formEl.reset();
-
-    if (currentUser && currentUser.role === 'STUDENT') {
-      const contactEl = document.getElementById(`${prefix}-contact`);
-      if (contactEl) contactEl.value = currentUser.contact;
-    }
-
-    if (type === 'LOST') {
-      setTimeout(() => {
-        matchSpecificItem(createdItem.id);
-      }, 400);
-    } else {
-      switchView('dashboard');
-    }
-  } finally {
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnHtml;
-    }
+  if (type === 'LOST') {
+    setTimeout(() => {
+      matchSpecificItem(createdItem.id);
+    }, 400);
+  } else {
+    switchView('dashboard');
   }
 }
 
@@ -1528,7 +1447,6 @@ async function markPairRecovered(lostId, foundId) {
   });
   saveLocalItems(items);
   pushToWorldwideCloudDatabase(items);
-  triggerWorldwideGitSync(`Worldwide Auto-Sync: Items ${lostId} and ${foundId} marked as RECOVERED`);
 
   showToast('Belonging successfully marked as RECOVERED! Congratulations! 🎉', 'success');
   runMatchAlgorithm();
@@ -1555,7 +1473,6 @@ async function markSingleRecovered(itemId) {
     target.status = 'RECOVERED';
     saveLocalItems(items);
     pushToWorldwideCloudDatabase(items);
-    triggerWorldwideGitSync(`Worldwide Auto-Sync: Item ${itemId} marked as RECOVERED`);
   }
 
   showToast(`Item ${itemId} marked as RECOVERED!`, 'success');
@@ -2124,7 +2041,6 @@ async function handleSaveEditedItem(event) {
 
   saveLocalItems(items);
   pushToWorldwideCloudDatabase(items);
-  triggerWorldwideGitSync(`Worldwide Auto-Sync: Item #${id} updated`);
 
   // Sync to C++ backend if online
   if (isBackendOnline) {
@@ -2154,7 +2070,6 @@ async function deleteItem(itemId) {
   items = items.filter(i => i.id !== itemId);
   saveLocalItems(items);
   pushToWorldwideCloudDatabase(items);
-  triggerWorldwideGitSync(`Worldwide Auto-Sync: Item #${itemId} deleted`);
 
   if (isBackendOnline) {
     try {
