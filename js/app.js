@@ -46,12 +46,7 @@ function getApiBase() {
 }
 const API_BASE = getApiBase();
 
-let currentUser = JSON.parse(localStorage.getItem('smart_lost_found_user')) || {
-  role: 'STUDENT',
-  contact: 'ali.raza@uni.edu',
-  name: 'Student (ali.raza@uni.edu)',
-  token: ''
-};
+let currentUser = JSON.parse(localStorage.getItem('smart_lost_found_user')) || null;
 
 let allItemsCache = [];
 let currentFilter = {
@@ -127,6 +122,11 @@ async function checkBackendHealth() {
 
 // ── Role UI Management ─────────────────────────────────────────────────────
 function updateRoleUI() {
+  if (!currentUser) {
+    showStartingScreen();
+    return;
+  }
+
   const badge = document.getElementById('current-user-badge');
   const label = document.getElementById('current-user-label');
   const authBtn = document.getElementById('auth-action-btn');
@@ -138,22 +138,31 @@ function updateRoleUI() {
   const navDashBtn = document.getElementById('nav-dashboard');
 
   if (currentUser.role === 'ADMIN') {
-    badge.className = 'user-badge admin-active';
-    label.innerHTML = `🛡️ <strong>Admin:</strong> Campus Office`;
-    authBtn.textContent = '🚪 Sign Out';
-    authBtn.onclick = handleSignOut;
+    // REMOVED "Admin: Campus Office" badge per user request!
+    if (badge) badge.style.display = 'none';
+    if (authBtn) {
+      authBtn.textContent = '🚪 Sign Out';
+      authBtn.onclick = handleSignOut;
+    }
 
     if (navBrowse) navBrowse.style.display = 'block';
-    if (navStats) navStats.style.display = 'block';
+    // REMOVED "DSA Engine & Stats" in navbar per user request!
+    if (navStats) navStats.style.display = 'none';
     if (navSync) navSync.style.display = 'block';
     if (heroBrowseBtn) heroBrowseBtn.style.display = 'inline-flex';
     if (privacyBanner) privacyBanner.style.display = 'none';
     if (navDashBtn) navDashBtn.innerHTML = '📊 Campus Dashboard';
   } else {
-    badge.className = 'user-badge student-active';
-    label.innerHTML = `👨‍🎓 <strong>Student:</strong> ${escapeHtml(currentUser.contact)}`;
-    authBtn.textContent = '🔐 Admin Login';
-    authBtn.onclick = () => openLoginModal('ADMIN');
+    // Student Mode
+    if (badge) {
+      badge.style.display = 'inline-flex';
+      badge.className = 'user-badge student-active';
+    }
+    if (label) label.innerHTML = `👨‍🎓 <strong>Student:</strong> ${escapeHtml(currentUser.contact)}`;
+    if (authBtn) {
+      authBtn.textContent = '🚪 Sign Out';
+      authBtn.onclick = handleSignOut;
+    }
 
     if (navBrowse) navBrowse.style.display = 'none';
     if (navStats) navStats.style.display = 'none';
@@ -175,9 +184,14 @@ function updateRoleUI() {
 
 // ── View Switching ─────────────────────────────────────────────────────────
 function switchView(viewName) {
+  if (!currentUser) {
+    showStartingScreen();
+    return;
+  }
+
   if ((viewName === 'browse' || viewName === 'stats') && currentUser.role !== 'ADMIN') {
     showToast('Campus-wide browsing is restricted to administrators', 'error');
-    openLoginModal('ADMIN');
+    handleSignOut();
     return;
   }
 
@@ -1171,47 +1185,53 @@ function handleModalOverlayClick(event) {
   }
 }
 
-// ── Authentication Modal & Handlers ────────────────────────────────────────
-function openLoginModal(tab = 'STUDENT') {
-  const modal = document.getElementById('login-modal');
-  if (modal) modal.style.display = 'flex';
-  switchAuthTab(tab);
-}
-
-function closeLoginModal() {
-  const modal = document.getElementById('login-modal');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleLoginModalOverlayClick(event) {
-  if (event.target.id === 'login-modal') {
-    closeLoginModal();
-  }
-}
-
-function switchAuthTab(tab) {
-  const studentBtn = document.getElementById('tab-student-btn');
-  const adminBtn = document.getElementById('tab-admin-btn');
-  const studentForm = document.getElementById('student-login-form');
-  const adminForm = document.getElementById('admin-login-form');
+// ── Starting Portal Gateway & Authentication ───────────────────────────────
+function switchStartTab(tab) {
+  const studentBtn = document.getElementById('start-tab-student');
+  const adminBtn = document.getElementById('start-tab-admin');
+  const studentForm = document.getElementById('start-student-form');
+  const adminForm = document.getElementById('start-admin-form');
 
   if (tab === 'ADMIN') {
-    studentBtn.classList.remove('active');
-    adminBtn.classList.add('active');
-    studentForm.style.display = 'none';
-    adminForm.style.display = 'block';
+    if (studentBtn) studentBtn.classList.remove('active');
+    if (adminBtn) adminBtn.classList.add('active');
+    if (studentForm) studentForm.style.display = 'none';
+    if (adminForm) adminForm.style.display = 'block';
   } else {
-    adminBtn.classList.remove('active');
-    studentBtn.classList.add('active');
-    adminForm.style.display = 'none';
-    studentForm.style.display = 'block';
+    if (adminBtn) adminBtn.classList.remove('active');
+    if (studentBtn) studentBtn.classList.add('active');
+    if (adminForm) adminForm.style.display = 'none';
+    if (studentForm) studentForm.style.display = 'block';
   }
 }
 
-async function handleStudentLogin(event) {
-  event.preventDefault();
-  const email = document.getElementById('login-student-email').value.trim();
-  if (!email) return;
+function enterWebsite() {
+  const startScreen = document.getElementById('starting-login-screen');
+  const appHeader = document.getElementById('app-header');
+  const appMain = document.getElementById('app-main');
+
+  if (startScreen) startScreen.style.display = 'none';
+  if (appHeader) appHeader.style.display = 'block';
+  if (appMain) appMain.style.display = 'block';
+
+  updateRoleUI();
+  loadDashboard();
+}
+
+function showStartingScreen() {
+  const startScreen = document.getElementById('starting-login-screen');
+  const appHeader = document.getElementById('app-header');
+  const appMain = document.getElementById('app-main');
+
+  if (startScreen) startScreen.style.display = 'flex';
+  if (appHeader) appHeader.style.display = 'none';
+  if (appMain) appMain.style.display = 'none';
+}
+
+async function handleStartStudentLogin(event) {
+  if (event) event.preventDefault();
+  const emailInput = document.getElementById('start-student-email') || document.getElementById('login-student-email');
+  const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'ali.raza@uni.edu';
 
   currentUser = {
     role: 'STUDENT',
@@ -1220,15 +1240,17 @@ async function handleStudentLogin(event) {
     token: ''
   };
   localStorage.setItem('smart_lost_found_user', JSON.stringify(currentUser));
-  closeLoginModal();
-  showToast(`Logged in as Student: ${email}`, 'success');
+  enterWebsite();
+  showToast(`Welcome! Logged in as Student: ${email}`, 'success');
   switchView('dashboard');
 }
 
-async function handleAdminLogin(event) {
-  event.preventDefault();
-  const username = document.getElementById('login-admin-user').value.trim();
-  const password = document.getElementById('login-admin-pass').value.trim();
+async function handleStartAdminLogin(event) {
+  if (event) event.preventDefault();
+  const userInput = document.getElementById('start-admin-user') || document.getElementById('login-admin-user');
+  const passInput = document.getElementById('start-admin-pass') || document.getElementById('login-admin-pass');
+  const username = userInput ? userInput.value.trim() : 'admin';
+  const password = passInput ? passInput.value.trim() : 'admin123';
 
   let adminSuccess = false;
 
@@ -1239,9 +1261,9 @@ async function handleAdminLogin(event) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: 'ADMIN', username, password })
       });
-      const data = await res.json();
-      if (data.success) {
-        adminSuccess = true;
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) adminSuccess = true;
       }
     } catch (e) {
       console.warn('Backend login unavailable.');
@@ -1261,8 +1283,8 @@ async function handleAdminLogin(event) {
       token: 'admin-token-2026'
     };
     localStorage.setItem('smart_lost_found_user', JSON.stringify(currentUser));
-    closeLoginModal();
-    showToast('Admin Portal Unlocked! Full campus database accessible.', 'success');
+    enterWebsite();
+    showToast('Admin Portal Unlocked! Full campus access granted.', 'success');
     switchView('browse');
   } else {
     showToast('Invalid admin credentials. Use admin / admin123', 'error');
@@ -1270,16 +1292,35 @@ async function handleAdminLogin(event) {
 }
 
 function handleSignOut() {
-  currentUser = {
-    role: 'STUDENT',
-    contact: 'ali.raza@uni.edu',
-    name: 'Student (ali.raza@uni.edu)',
-    token: ''
-  };
-  localStorage.setItem('smart_lost_found_user', JSON.stringify(currentUser));
-  showToast('Signed out of Admin mode. Switched to Student mode.', 'success');
-  switchView('dashboard');
+  currentUser = null;
+  localStorage.removeItem('smart_lost_found_user');
+  showStartingScreen();
+  showToast('Signed out. Please select your portal to sign in.', 'success');
 }
+
+// Backward compatibility handlers for modal
+function openLoginModal(tab = 'STUDENT') {
+  handleSignOut();
+  switchStartTab(tab);
+}
+
+function closeLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleLoginModalOverlayClick(event) {
+  if (event.target.id === 'login-modal') {
+    closeLoginModal();
+  }
+}
+
+function switchAuthTab(tab) {
+  switchStartTab(tab);
+}
+
+const handleStudentLogin = handleStartStudentLogin;
+const handleAdminLogin = handleStartAdminLogin;
 
 // ── Statistics & DSA Inspector (Admin Only) ────────────────────────────────
 async function loadStatistics() {
@@ -1363,6 +1404,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Detect live C++ server in background
   await checkBackendHealth();
 
-  updateRoleUI();
-  loadDashboard();
+  if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STUDENT')) {
+    enterWebsite();
+    if (currentUser.role === 'ADMIN') {
+      switchView('browse');
+    } else {
+      switchView('dashboard');
+    }
+  } else {
+    showStartingScreen();
+  }
 });
