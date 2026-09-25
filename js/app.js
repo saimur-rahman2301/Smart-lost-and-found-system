@@ -79,65 +79,96 @@ function saveLocalItems(items) {
   localStorage.setItem('smart_lost_found_items', JSON.stringify(items));
 }
 
-// Auto-sync with live repository database (items.json) across GitHub Pages, Vercel & local
-async function syncDatabaseWithRepository() {
-  try {
-    let remoteItems = null;
+// ── Worldwide Real-Time Cloud Database Synchronization ─────────────────────
+const CLOUD_DB_URL = 'https://mantledb.sh/v2/smart-lost-found-ruet/database';
 
-    // 1. Try relative items.json on the current domain (works on GitHub Pages, Vercel, localhost)
+// Asynchronously push latest items database to worldwide cloud
+async function pushToWorldwideCloudDatabase(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  try {
+    const payload = {
+      items,
+      lastUpdated: new Date().toISOString()
+    };
+    await fetch(CLOUD_DB_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.warn('Cloud database sync notice:', err);
+  }
+}
+
+// Auto-sync with Worldwide Cloud Database across all devices, Vercel & GitHub Pages
+async function syncWorldwideCloudDatabase() {
+  try {
+    let cloudItems = null;
+
+    // 1. Fetch from Worldwide Cloud Database
     try {
-      const res = await fetch(`./items.json?_t=${Date.now()}`);
+      const res = await fetch(CLOUD_DB_URL);
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          remoteItems = data;
+        if (data && Array.isArray(data.items) && data.items.length > 0) {
+          cloudItems = data.items;
         }
       }
-    } catch (err) {
-      // Relative fetch failed
+    } catch (e) {
+      console.warn('Direct cloud fetch notice:', e);
     }
 
-    // 2. Fallback to raw GitHub repository
-    if (!remoteItems) {
+    // 2. Fallback to items.json if cloud was not reachable
+    if (!cloudItems || cloudItems.length === 0) {
       try {
-        const ghRes = await fetch(`https://raw.githubusercontent.com/saimur-rahman2301/Smart-lost-and-found-system/main/items.json?_t=${Date.now()}`);
-        if (ghRes.ok) {
-          const ghData = await ghRes.json();
-          if (Array.isArray(ghData) && ghData.length > 0) {
-            remoteItems = ghData;
+        const localRes = await fetch(`./items.json?_t=${Date.now()}`);
+        if (localRes.ok) {
+          const lData = await localRes.json();
+          if (Array.isArray(lData) && lData.length > 0) {
+            cloudItems = lData;
           }
         }
-      } catch (err) {
-        // GitHub raw fetch fallback
-      }
+      } catch (e) {}
     }
 
-    if (!remoteItems || remoteItems.length === 0) return;
+    if (!cloudItems || cloudItems.length === 0) return;
 
-    // 3. Merge: keep every locally reported item, incorporate new items from remote
+    // 3. Bidirectional merge:
+    // - Merge cloud items into local storage
+    // - If local storage has any items reported offline or locally that are not yet in cloud, push them to cloud!
     const localItems = getLocalItems();
     const localMap = new Map();
     localItems.forEach(it => { if (it && it.id) localMap.set(it.id, it); });
 
-    let updated = false;
-    remoteItems.forEach(remoteIt => {
-      if (!remoteIt || !remoteIt.id) return;
-      if (!localMap.has(remoteIt.id)) {
-        localItems.push(remoteIt);
-        localMap.set(remoteIt.id, remoteIt);
-        updated = true;
+    let localNeedsSave = false;
+    let cloudNeedsUpdate = false;
+
+    cloudItems.forEach(cloudIt => {
+      if (!cloudIt || !cloudIt.id) return;
+      if (!localMap.has(cloudIt.id)) {
+        localItems.push(cloudIt);
+        localMap.set(cloudIt.id, cloudIt);
+        localNeedsSave = true;
       } else {
-        const existing = localMap.get(remoteIt.id);
-        if (remoteIt.status && remoteIt.status !== existing.status) {
-          existing.status = remoteIt.status;
-          updated = true;
+        const localIt = localMap.get(cloudIt.id);
+        if (cloudIt.status && cloudIt.status !== localIt.status) {
+          localIt.status = cloudIt.status;
+          localNeedsSave = true;
         }
       }
     });
 
-    if (updated) {
+    // Check if any local items are missing in cloud
+    const cloudIds = new Set(cloudItems.map(c => c && c.id));
+    localItems.forEach(localIt => {
+      if (localIt && localIt.id && !cloudIds.has(localIt.id)) {
+        cloudNeedsUpdate = true;
+      }
+    });
+
+    if (localNeedsSave) {
       saveLocalItems(localItems);
-      // Seamlessly refresh active UI view
+      // Refresh current active view
       if (currentUser) {
         if (currentUser.role === 'ADMIN') {
           const activeSec = document.querySelector('.view-section.active');
@@ -149,10 +180,17 @@ async function syncDatabaseWithRepository() {
         }
       }
     }
-  } catch (syncErr) {
-    console.warn('Repository sync notice:', syncErr);
+
+    if (cloudNeedsUpdate) {
+      pushToWorldwideCloudDatabase(localItems);
+    }
+  } catch (err) {
+    console.warn('Worldwide sync notice:', err);
   }
 }
+
+// Backward-compatible alias
+const syncDatabaseWithRepository = syncWorldwideCloudDatabase;
 
 // ── Database Export, Import & Clipboard Helpers (Admin Settings) ─────────────
 function exportDatabaseToJson() {
@@ -199,6 +237,7 @@ function importDatabaseFromJson(event) {
       });
 
       saveLocalItems(localItems);
+      pushToWorldwideCloudDatabase(localItems);
       renderItemsControlTable();
       loadDashboard();
       showToast(`Database synced! Added ${added} new items from imported file. Total items: ${localItems.length}`, 'success');
@@ -375,11 +414,11 @@ function updateEngineBadge(isLive, labelText) {
     badge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
     badge.style.background = 'rgba(16, 185, 129, 0.08)';
   } else {
-    dot.style.background = '#3b82f6'; // Blue
-    label.textContent = labelText || '🌐 Cloud / Browser Engine';
-    badge.title = 'Active: In-Browser Client Engine (Full 100-Point Rule Formula & Max Heap Simulation)';
-    badge.style.borderColor = 'rgba(59, 130, 246, 0.4)';
-    badge.style.background = 'rgba(59, 130, 246, 0.08)';
+    dot.style.background = '#06b6d4'; // Cyan / Teal
+    label.textContent = labelText || '🌐 Worldwide Cloud Sync';
+    badge.title = 'Active: Worldwide Real-Time Cloud Database & In-Browser Engine';
+    badge.style.borderColor = 'rgba(6, 182, 212, 0.4)';
+    badge.style.background = 'rgba(6, 182, 212, 0.08)';
   }
 }
 
@@ -401,7 +440,7 @@ async function checkBackendHealth() {
     // Offline / Cloud mode
   }
   isBackendOnline = false;
-  updateEngineBadge(false, '🌐 Cloud Engine');
+  updateEngineBadge(false, '🌐 Worldwide Cloud Sync');
   return false;
 }
 
@@ -572,6 +611,9 @@ async function executeWorldwideSync() {
   if (statusMsg) statusMsg.innerHTML = '⏳ Committing and pushing to GitHub... Please wait...';
   if (statusSub) statusSub.textContent = 'Executing git add, commit, and git push origin main...';
 
+  // Push latest local items to worldwide cloud database immediately
+  await pushToWorldwideCloudDatabase(getLocalItems());
+
   // 1. Try local C++ backend /api/git/sync first
   try {
     const res = await fetch(`${getApiBase()}/api/git/sync`, { method: 'POST' });
@@ -705,7 +747,7 @@ async function fetchItems(params = {}) {
     } catch (err) {
       console.warn('C++ server communication dropped, falling back to local store.');
       isBackendOnline = false;
-      updateEngineBadge(false, '🌐 Cloud Engine');
+      updateEngineBadge(false, '🌐 Worldwide Cloud Sync');
     }
   }
 
@@ -1022,6 +1064,7 @@ async function submitReport(event, type) {
   // Always persist locally for permanent client session
   localItems.unshift(createdItem);
   saveLocalItems(localItems);
+  pushToWorldwideCloudDatabase(localItems);
 
   showToast(`Successfully reported ${type.toLowerCase()} item! (ID: ${createdItem.id})`, 'success');
   document.getElementById(`form-${prefix}`).reset();
@@ -1403,6 +1446,7 @@ async function markPairRecovered(lostId, foundId) {
     }
   });
   saveLocalItems(items);
+  pushToWorldwideCloudDatabase(items);
 
   showToast('Belonging successfully marked as RECOVERED! Congratulations! 🎉', 'success');
   runMatchAlgorithm();
@@ -1428,6 +1472,7 @@ async function markSingleRecovered(itemId) {
   if (target) {
     target.status = 'RECOVERED';
     saveLocalItems(items);
+    pushToWorldwideCloudDatabase(items);
   }
 
   showToast(`Item ${itemId} marked as RECOVERED!`, 'success');
@@ -1590,6 +1635,7 @@ async function handleStartStudentLogin(event) {
     enterWebsite();
     showToast(`Welcome! Logged in as RUET Student (Roll: ${matchedStudent.roll})`, 'success');
     switchView('dashboard');
+    syncWorldwideCloudDatabase();
   } else {
     showToast('Access denied! Only registered RUET student accounts (2410027, 2410026, 2410029) can log in with their correct roll password.', 'error');
   }
@@ -1637,6 +1683,7 @@ async function handleStartAdminLogin(event) {
     enterWebsite();
     showToast('Admin Portal Unlocked! Full campus access granted.', 'success');
     switchView('browse');
+    syncWorldwideCloudDatabase();
   } else {
     showToast('Invalid admin credentials. Please enter the correct admin password.', 'error');
   }
@@ -1993,6 +2040,7 @@ async function handleSaveEditedItem(event) {
   };
 
   saveLocalItems(items);
+  pushToWorldwideCloudDatabase(items);
 
   // Sync to C++ backend if online
   if (isBackendOnline) {
@@ -2021,6 +2069,7 @@ async function deleteItem(itemId) {
   let items = getLocalItems();
   items = items.filter(i => i.id !== itemId);
   saveLocalItems(items);
+  pushToWorldwideCloudDatabase(items);
 
   if (isBackendOnline) {
     try {
@@ -2147,4 +2196,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Asynchronously sync database with repository items.json (GitHub Pages, Vercel & local)
   await syncDatabaseWithRepository();
+
+  // Background periodic worldwide cloud database sync (every 25 seconds)
+  setInterval(() => {
+    syncWorldwideCloudDatabase();
+  }, 25000);
+
+  // Sync when window refocuses / tab becomes active
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncWorldwideCloudDatabase();
+    }
+  });
 });
