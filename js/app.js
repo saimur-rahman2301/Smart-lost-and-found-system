@@ -79,6 +79,147 @@ function saveLocalItems(items) {
   localStorage.setItem('smart_lost_found_items', JSON.stringify(items));
 }
 
+// Auto-sync with live repository database (items.json) across GitHub Pages, Vercel & local
+async function syncDatabaseWithRepository() {
+  try {
+    let remoteItems = null;
+
+    // 1. Try relative items.json on the current domain (works on GitHub Pages, Vercel, localhost)
+    try {
+      const res = await fetch(`./items.json?_t=${Date.now()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          remoteItems = data;
+        }
+      }
+    } catch (err) {
+      // Relative fetch failed
+    }
+
+    // 2. Fallback to raw GitHub repository
+    if (!remoteItems) {
+      try {
+        const ghRes = await fetch(`https://raw.githubusercontent.com/saimur-rahman2301/Smart-lost-and-found-system/main/items.json?_t=${Date.now()}`);
+        if (ghRes.ok) {
+          const ghData = await ghRes.json();
+          if (Array.isArray(ghData) && ghData.length > 0) {
+            remoteItems = ghData;
+          }
+        }
+      } catch (err) {
+        // GitHub raw fetch fallback
+      }
+    }
+
+    if (!remoteItems || remoteItems.length === 0) return;
+
+    // 3. Merge: keep every locally reported item, incorporate new items from remote
+    const localItems = getLocalItems();
+    const localMap = new Map();
+    localItems.forEach(it => { if (it && it.id) localMap.set(it.id, it); });
+
+    let updated = false;
+    remoteItems.forEach(remoteIt => {
+      if (!remoteIt || !remoteIt.id) return;
+      if (!localMap.has(remoteIt.id)) {
+        localItems.push(remoteIt);
+        localMap.set(remoteIt.id, remoteIt);
+        updated = true;
+      } else {
+        const existing = localMap.get(remoteIt.id);
+        if (remoteIt.status && remoteIt.status !== existing.status) {
+          existing.status = remoteIt.status;
+          updated = true;
+        }
+      }
+    });
+
+    if (updated) {
+      saveLocalItems(localItems);
+      // Seamlessly refresh active UI view
+      if (currentUser) {
+        if (currentUser.role === 'ADMIN') {
+          const activeSec = document.querySelector('.view-section.active');
+          if (activeSec && activeSec.id === 'view-browse') loadBrowseItems();
+          else if (activeSec && activeSec.id === 'view-settings') renderItemsControlTable();
+          else loadDashboard();
+        } else {
+          loadDashboard();
+        }
+      }
+    }
+  } catch (syncErr) {
+    console.warn('Repository sync notice:', syncErr);
+  }
+}
+
+// ── Database Export, Import & Clipboard Helpers (Admin Settings) ─────────────
+function exportDatabaseToJson() {
+  const items = getLocalItems();
+  const jsonStr = JSON.stringify(items, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'items.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`Exported ${items.length} items to items.json successfully!`, 'success');
+}
+
+function importDatabaseFromJson(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!Array.isArray(imported)) {
+        showToast('Invalid JSON file format. Expected a JSON array of items.', 'error');
+        return;
+      }
+
+      // Merge imported items with existing items
+      const localItems = getLocalItems();
+      const localMap = new Map();
+      localItems.forEach(it => { if (it && it.id) localMap.set(it.id, it); });
+
+      let added = 0;
+      imported.forEach(it => {
+        if (!it || !it.id) return;
+        if (!localMap.has(it.id)) {
+          localItems.unshift(it);
+          localMap.set(it.id, it);
+          added++;
+        }
+      });
+
+      saveLocalItems(localItems);
+      renderItemsControlTable();
+      loadDashboard();
+      showToast(`Database synced! Added ${added} new items from imported file. Total items: ${localItems.length}`, 'success');
+    } catch (parseErr) {
+      showToast('Failed to parse JSON file: ' + parseErr.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = ''; // Reset input
+}
+
+function copyDatabaseJson() {
+  const items = getLocalItems();
+  const jsonStr = JSON.stringify(items, null, 2);
+  navigator.clipboard.writeText(jsonStr).then(() => {
+    showToast(`Copied complete database JSON (${items.length} items) to clipboard!`, 'success');
+  }).catch(() => {
+    showToast('Failed to copy to clipboard', 'error');
+  });
+}
+
 // ── Registered RUET Students Store ─────────────────────────────────────────
 const DEFAULT_STUDENTS = [
   { roll: "2410027", email: "2410027@student.ruet.ac.bd", password: "2410027", dept: "ECE (RUET)", registeredAt: "2026-09-24 10:00", status: "Active" },
@@ -88,16 +229,39 @@ const DEFAULT_STUDENTS = [
 
 function getRegisteredStudents() {
   const data = localStorage.getItem('smart_lost_found_registered_students');
+  let list = [];
   if (!data) {
-    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(DEFAULT_STUDENTS));
-    return [...DEFAULT_STUDENTS];
+    list = [...DEFAULT_STUDENTS];
+    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(list));
+    return list;
   }
   try {
-    const list = JSON.parse(data);
-    return Array.isArray(list) && list.length > 0 ? list : [...DEFAULT_STUDENTS];
+    list = JSON.parse(data);
+    if (!Array.isArray(list) || list.length === 0) {
+      list = [...DEFAULT_STUDENTS];
+    }
   } catch (e) {
-    return [...DEFAULT_STUDENTS];
+    list = [...DEFAULT_STUDENTS];
   }
+
+  // Ensure all 3 RUET student accounts are ALWAYS present with valid roll password
+  let modified = false;
+  DEFAULT_STUDENTS.forEach(defSt => {
+    const existing = list.find(s => s.roll === defSt.roll);
+    if (!existing) {
+      list.push(defSt);
+      modified = true;
+    } else if (!existing.password || existing.password !== defSt.password) {
+      existing.password = defSt.password;
+      existing.status = 'Active';
+      modified = true;
+    }
+  });
+
+  if (modified) {
+    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(list));
+  }
+  return list;
 }
 
 function saveRegisteredStudents(list) {
@@ -548,10 +712,27 @@ async function fetchItems(params = {}) {
   // Client-Side In-Browser DSA Engine
   let items = getLocalItems();
 
-  // Role Filtering: Student Privacy Enforcement
-  if (currentUser.role === 'STUDENT') {
+  // Role Filtering: Student Privacy Enforcement (Preserves all items reported by student)
+  if (currentUser && currentUser.role === 'STUDENT') {
     const studentEmail = (currentUser.contact || '').toLowerCase().trim();
-    items = items.filter(it => (it.contact || '').toLowerCase().trim() === studentEmail);
+    const studentRoll = (currentUser.roll || '').trim();
+
+    items = items.filter(it => {
+      const itContact = (it.contact || '').toLowerCase().trim();
+      const itReportedBy = (it.reportedBy || '').toLowerCase().trim();
+      const itRoll = (it.reporterRoll || '').trim();
+
+      // 1. Direct match with student email or reportedBy
+      if (itContact === studentEmail || itReportedBy === studentEmail) return true;
+
+      // 2. Roll matching (e.g. 2410027)
+      if (studentRoll) {
+        if (itRoll === studentRoll) return true;
+        if (itContact.includes(studentRoll) || itReportedBy.includes(studentRoll)) return true;
+        if ((it.keywords || '').includes(studentRoll) || (it.name || '').includes(studentRoll)) return true;
+      }
+      return false;
+    });
   }
 
   // Type filter
@@ -791,8 +972,16 @@ async function submitReport(event, type) {
   const description = document.getElementById(`${prefix}-description`).value.trim();
 
   const localItems = getLocalItems();
-  const nextNum = localItems.length + 1;
-  const generatedId = `${type}_${nextNum}`;
+
+  // Find max numerical ID among items with this prefix to avoid collisions across sessions
+  let maxNum = 0;
+  localItems.forEach(it => {
+    if (it && it.id && it.id.startsWith(type + '_')) {
+      const numPart = parseInt(it.id.replace(type + '_', ''), 10);
+      if (!isNaN(numPart) && numPart > maxNum) maxNum = numPart;
+    }
+  });
+  const generatedId = `${type}_${maxNum + 1}`;
 
   const payload = {
     id: generatedId,
@@ -803,7 +992,10 @@ async function submitReport(event, type) {
     brand,
     location,
     date,
-    contact,
+    contact: contact || (currentUser ? currentUser.contact : ''),
+    reportedBy: currentUser ? (currentUser.contact || currentUser.email || 'RUET Student') : (contact || ''),
+    reporterRoll: currentUser ? (currentUser.roll || '') : '',
+    reportedAt: new Date().toISOString(),
     keywords,
     description,
     status: 'ACTIVE'
@@ -819,21 +1011,22 @@ async function submitReport(event, type) {
         body: JSON.stringify(payload)
       });
       if (res.ok) {
-        createdItem = await res.json();
+        const data = await res.json();
+        if (data && data.id) createdItem = data;
       }
     } catch (e) {
       console.warn('Backend write failed, saving locally.');
     }
   }
 
-  // Always persist locally for seamless client session
+  // Always persist locally for permanent client session
   localItems.unshift(createdItem);
   saveLocalItems(localItems);
 
   showToast(`Successfully reported ${type.toLowerCase()} item! (ID: ${createdItem.id})`, 'success');
   document.getElementById(`form-${prefix}`).reset();
 
-  if (currentUser.role === 'STUDENT') {
+  if (currentUser && currentUser.role === 'STUDENT') {
     const contactEl = document.getElementById(`${prefix}-contact`);
     if (contactEl) contactEl.value = currentUser.contact;
   }
@@ -1926,6 +2119,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Detect live C++ server in background
   await checkBackendHealth();
 
+  // Validate student user session against registered accounts
+  if (currentUser) {
+    if (currentUser.role === 'STUDENT') {
+      const registeredStudents = getRegisteredStudents();
+      const isValid = registeredStudents.some(s =>
+        s.email.toLowerCase() === (currentUser.contact || '').toLowerCase() ||
+        s.roll === currentUser.roll
+      );
+      if (!isValid) {
+        currentUser = null;
+        localStorage.removeItem('smart_lost_found_user');
+      }
+    }
+  }
+
   if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STUDENT')) {
     enterWebsite();
     if (currentUser.role === 'ADMIN') {
@@ -1936,4 +2144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } else {
     showStartingScreen();
   }
+
+  // Asynchronously sync database with repository items.json (GitHub Pages, Vercel & local)
+  await syncDatabaseWithRepository();
 });

@@ -751,9 +751,21 @@
               Administrators can edit title, category, location, date, contact or delete any recorded lost/found item.
             </p>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="switchView('report-found')">
-            ➕ Add Found Item
-          </button>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <button type="button" class="btn btn-success btn-sm" onclick="exportDatabaseToJson()" title="Download items.json containing all 25 seed items and newly reported items">
+              📥 Export items.json
+            </button>
+            <label class="btn btn-outline btn-sm" style="cursor:pointer; margin:0;" title="Upload an updated items.json file into the system">
+              📤 Import items.json
+              <input type="file" id="import-items-file" accept=".json" style="display:none;" onchange="importDatabaseFromJson(event)">
+            </label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="copyDatabaseJson()" title="Copy entire database JSON to clipboard">
+              📋 Copy JSON
+            </button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="switchView('report-found')">
+              ➕ Add Found Item
+            </button>
+          </div>
         </div>
 
         <div class="table-responsive"

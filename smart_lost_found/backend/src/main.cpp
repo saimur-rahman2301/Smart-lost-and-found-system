@@ -43,6 +43,24 @@ void reloadDSAStructures(const std::vector<Item> &items)
     }
 }
 
+// Helper: Save items to DATA_FILE and all project directory locations
+void saveAllItemsToAllLocations(const std::vector<Item> &items)
+{
+    DataManager::saveToFile(DATA_FILE, items);
+    {
+        std::ifstream check("items.json");
+        if (check.is_open()) DataManager::saveToFile("items.json", items);
+    }
+    {
+        std::ifstream check("../items.json");
+        if (check.is_open()) DataManager::saveToFile("../items.json", items);
+    }
+    {
+        std::ifstream check("smart_lost_found/items.json");
+        if (check.is_open()) DataManager::saveToFile("smart_lost_found/items.json", items);
+    }
+}
+
 // Helper: Read entire file content into string
 std::string readFileContent(const std::string &filepath)
 {
@@ -458,9 +476,9 @@ void handleClient(SOCKET clientSocket)
         g_hashTable.insert(newItem.id, newItem);
         g_bst.insert(newItem.name, newItem);
 
-        // Persist to JSON file
+        // Persist to JSON files across all locations
         allItems.push_back(newItem);
-        DataManager::saveToFile(DATA_FILE, allItems);
+        saveAllItemsToAllLocations(allItems);
 
         std::cout << "[DSA Server] Stored new " << typeStr << " item: " << newItem.name
                   << " (ID: " << newItem.id << ") into Hash Table & BST.\n";
@@ -541,7 +559,7 @@ void handleClient(SOCKET clientSocket)
             g_hashTable.insert(itemId, *item);
             g_bst.insert(item->name, *item);
 
-            DataManager::saveToFile(DATA_FILE, g_hashTable.getAllItems());
+            saveAllItemsToAllLocations(g_hashTable.getAllItems());
             std::cout << "[DSA Server] Item " << itemId << " marked as RECOVERED!\n";
             response = makeHttpResponse(200, "OK", "application/json", "{\"success\":true}");
         }
@@ -551,23 +569,79 @@ void handleClient(SOCKET clientSocket)
         }
     }
     // ─────────────────────────────────────────────────────────────────────────
+    // ROUTE: PUT /api/items (Admin Update Item)
+    // ─────────────────────────────────────────────────────────────────────────
+    else if (method == "PUT" && path == "/api/items")
+    {
+        std::string itemId = extractJsonField(body, "id");
+        Item *item = g_hashTable.search(itemId);
+        if (item != nullptr)
+        {
+            std::string nameVal = extractJsonField(body, "name");
+            if (!nameVal.empty()) item->name = nameVal;
+            std::string typeStr = extractJsonField(body, "type");
+            if (!typeStr.empty()) item->type = stringToItemType(typeStr);
+            std::string catVal = extractJsonField(body, "category");
+            if (!catVal.empty()) item->category = catVal;
+            std::string locVal = extractJsonField(body, "location");
+            if (!locVal.empty()) item->location = locVal;
+            std::string dateVal = extractJsonField(body, "date");
+            if (!dateVal.empty()) item->date = dateVal;
+            std::string contactVal = extractJsonField(body, "contact");
+            if (!contactVal.empty()) item->contact = contactVal;
+            std::string descVal = extractJsonField(body, "description");
+            if (!descVal.empty()) item->description = descVal;
+            std::string statusStr = extractJsonField(body, "status");
+            if (statusStr == "RECOVERED") item->status = ItemStatus::RECOVERED;
+            else if (statusStr == "MATCHED") item->status = ItemStatus::MATCHED;
+            else if (statusStr == "ACTIVE") item->status = ItemStatus::ACTIVE;
+
+            g_hashTable.insert(itemId, *item);
+            g_bst.insert(item->name, *item);
+            saveAllItemsToAllLocations(g_hashTable.getAllItems());
+            std::cout << "[DSA Server] Updated item " << itemId << "\n";
+            response = makeHttpResponse(200, "OK", "application/json", item->toJson());
+        }
+        else
+        {
+            response = makeHttpResponse(404, "Not Found", "application/json", "{\"error\":\"Item not found\"}");
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+    // ROUTE: DELETE /api/items/{id} (Admin Delete Item)
+    // ─────────────────────────────────────────────────────────────────────────
+    else if (method == "DELETE" && path.find("/api/items") != std::string::npos)
+    {
+        std::string itemId = "";
+        size_t lastSlash = path.find_last_of('/');
+        if (lastSlash != std::string::npos && lastSlash + 1 < path.length())
+        {
+            itemId = path.substr(lastSlash + 1);
+        }
+        if (!itemId.empty() && itemId != "items")
+        {
+            g_hashTable.remove(itemId);
+            std::vector<Item> allItems = g_hashTable.getAllItems();
+            reloadDSAStructures(allItems);
+            saveAllItemsToAllLocations(allItems);
+            std::cout << "[DSA Server] Deleted item " << itemId << "\n";
+            response = makeHttpResponse(200, "OK", "application/json", "{\"success\":true,\"message\":\"Item deleted\"}");
+        }
+        else
+        {
+            response = makeHttpResponse(400, "Bad Request", "application/json", "{\"error\":\"Missing item id\"}");
+        }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
     // ROUTE: POST /api/git/sync (Auto Commit & Push Worldwide to GitHub)
     // ─────────────────────────────────────────────────────────────────────────
     else if (method == "POST" && path == "/api/git/sync")
     {
         std::cout << "\n[Git Sync] Triggered Worldwide Update from Web Interface...\n";
 
-        // Save current items to file first
+        // Save current items to file first across all locations
         std::vector<Item> allItems = g_hashTable.getAllItems();
-        DataManager::saveToFile(DATA_FILE, allItems);
-        // Also save to root items.json if running from smart_lost_found/
-        {
-            std::ifstream checkRoot("../items.json");
-            if (checkRoot.is_open())
-            {
-                DataManager::saveToFile("../items.json", allItems);
-            }
-        }
+        saveAllItemsToAllLocations(allItems);
 
         std::cout << "[Git Sync] Running git add, commit, and push...\n";
         int gitRes = system("git add . && git commit -m \"Worldwide live update via Smart Lost & Found Web Portal\" && git push origin main");
