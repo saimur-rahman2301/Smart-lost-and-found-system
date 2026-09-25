@@ -39,12 +39,17 @@
       <!-- Student Portal Form -->
       <form id="start-student-form" onsubmit="handleStartStudentLogin(event)">
         <div class="start-form-desc">
-          <strong>👨‍🎓 Student Access:</strong> Enter your university student email or ID to access your personal belongings, report lost/found items, and check match scores.
+          <strong>👨‍🎓 RUET Student Access:</strong> Sign in with your registered student ID/email and roll password to access your belongings and match results.
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">RUET Student Email or Roll Number *</label>
+          <input type="text" class="form-input" id="start-student-email" required placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
+          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>, <code>2410029</code></span>
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">University Email / Student ID *</label>
-          <input type="text" class="form-input" id="start-student-email" required placeholder="e.g., ali.raza@uni.edu" value="ali.raza@uni.edu">
-          <span class="form-help">Sample accounts: <code>ali.raza@uni.edu</code>, <code>sara.k@uni.edu</code>, <code>omar.s@uni.edu</code></span>
+          <label class="form-label">Student Password (Your Roll Number) *</label>
+          <input type="password" class="form-input" id="start-student-pass" required placeholder="Enter roll as password" value="2410027">
+          <span class="form-help">Default password is your roll (e.g., <code>2410027</code>)</span>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700;">
           🚀 Enter Website as Student
@@ -97,6 +102,8 @@
           <!-- Admin-Only Navigation (Dynamically shown when admin logs in) -->
           <li id="nav-item-browse" style="display:none;"><button class="nav-btn" id="nav-browse"
               onclick="switchView('browse')">🔍 Browse All Items</button></li>
+          <li id="nav-item-settings" style="display:none;"><button class="nav-btn" id="nav-settings"
+              onclick="switchView('settings')">⚙️ Settings</button></li>
           <li id="nav-item-sync" style="display:none;"><button class="btn btn-primary btn-sm" id="btn-sync-worldwide"
               onclick="triggerWorldwideSync()" title="Commit changes &amp; deploy to GitHub worldwide"
               style="background: linear-gradient(135deg, #2563eb, #7c3aed); border: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; border-radius: var(--radius-sm, 6px); color: white; cursor: pointer; box-shadow: 0 2px 6px rgba(37,99,235,0.25);">
@@ -587,6 +594,163 @@
       </div>
     </section>
 
+    <!-- ===================================================================
+         VIEW 7: ADMIN SETTINGS & CONTROL CENTER
+         =================================================================== -->
+    <section id="view-settings" class="view-section">
+      <div class="section-header" style="margin-bottom:1.5rem;">
+        <div>
+          <h2 class="section-title">⚙️ Admin Settings &amp; Control Center</h2>
+          <p class="section-subtitle">Manage registered students, view search history, update admin credentials, and edit items.</p>
+        </div>
+      </div>
+
+      <!-- Settings Navigation Tabs -->
+      <div class="settings-nav-tabs">
+        <button type="button" class="settings-tab-btn active" id="stab-btn-students" onclick="switchSettingsTab('students')">
+          👥 Registered Students
+        </button>
+        <button type="button" class="settings-tab-btn" id="stab-btn-history" onclick="switchSettingsTab('history')">
+          🔎 Search &amp; Query History
+        </button>
+        <button type="button" class="settings-tab-btn" id="stab-btn-security" onclick="switchSettingsTab('security')">
+          🔐 Admin Security
+        </button>
+        <button type="button" class="settings-tab-btn" id="stab-btn-items" onclick="switchSettingsTab('items')">
+          🛠️ Items Full Control
+        </button>
+      </div>
+
+      <!-- Tab Pane 1: Registered Students -->
+      <div id="spane-students" class="settings-pane active">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <h3 style="font-size:1.1rem; font-weight:700; margin:0;">👥 Registered Student Accounts</h3>
+            <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
+              Only students registered below can log into the university student portal.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="openStudentModal()">
+            ➕ Register New Student
+          </button>
+        </div>
+
+        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="students-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+            <thead>
+              <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
+                <th style="padding:0.75rem 1rem;">Roll No.</th>
+                <th style="padding:0.75rem 1rem;">Student Email</th>
+                <th style="padding:0.75rem 1rem;">Department</th>
+                <th style="padding:0.75rem 1rem;">Status</th>
+                <th style="padding:0.75rem 1rem;">Password</th>
+                <th style="padding:0.75rem 1rem; text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="students-table-body">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Pane 2: Search & Query History -->
+      <div id="spane-history" class="settings-pane" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <h3 style="font-size:1.1rem; font-weight:700; margin:0;">🔎 Search &amp; Query Audit Trail</h3>
+            <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
+              Complete historical record of all search terms, keywords, and matching queries executed on the portal.
+            </p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="clearSearchHistory()">
+            🗑️ Clear History
+          </button>
+        </div>
+
+        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="history-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+            <thead>
+              <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
+                <th style="padding:0.75rem 1rem;">Date &amp; Time</th>
+                <th style="padding:0.75rem 1rem;">Search Keywords</th>
+                <th style="padding:0.75rem 1rem;">Category</th>
+                <th style="padding:0.75rem 1rem;">Type</th>
+                <th style="padding:0.75rem 1rem;">Results Found</th>
+                <th style="padding:0.75rem 1rem;">Searched By</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab Pane 3: Admin Security & Password Change -->
+      <div id="spane-security" class="settings-pane" style="display:none;">
+        <div style="max-width:540px; background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:1.75rem;">
+          <h3 style="font-size:1.1rem; font-weight:700; margin:0 0 0.5rem 0;">🔐 Update Administrator Password</h3>
+          <p style="font-size:0.825rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+            Set a new custom password for administrator access. Once changed, use your new password for all subsequent logins.
+          </p>
+
+          <form id="admin-password-form" onsubmit="handleAdminPasswordChange(event)">
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">Current Admin Password *</label>
+              <input type="password" class="form-input" id="curr-admin-pass" required placeholder="Enter current password">
+            </div>
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label">New Admin Password *</label>
+              <input type="password" class="form-input" id="new-admin-pass" required minlength="4" placeholder="Enter new password">
+            </div>
+            <div class="form-group" style="margin-bottom:1.5rem;">
+              <label class="form-label">Confirm New Password *</label>
+              <input type="password" class="form-input" id="confirm-admin-pass" required minlength="4" placeholder="Repeat new password">
+            </div>
+            <button type="submit" class="btn btn-primary" style="font-weight:700;">
+              💾 Save New Admin Password
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tab Pane 4: Items Full Control -->
+      <div id="spane-items" class="settings-pane" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+          <div>
+            <h3 style="font-size:1.1rem; font-weight:700; margin:0;">🛠️ Items Full Control &amp; Quick Editor</h3>
+            <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
+              Administrators can edit title, category, location, date, contact or delete any recorded lost/found item.
+            </p>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm" onclick="switchView('report-found')">
+            ➕ Add Found Item
+          </button>
+        </div>
+
+        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="items-mgmt-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+            <thead>
+              <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
+                <th style="padding:0.75rem 1rem;">ID</th>
+                <th style="padding:0.75rem 1rem;">Type</th>
+                <th style="padding:0.75rem 1rem;">Item Name</th>
+                <th style="padding:0.75rem 1rem;">Category</th>
+                <th style="padding:0.75rem 1rem;">Location</th>
+                <th style="padding:0.75rem 1rem;">Date</th>
+                <th style="padding:0.75rem 1rem;">Status</th>
+                <th style="padding:0.75rem 1rem; text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="items-mgmt-table-body">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Modal for Item Details & Mark as Recovered -->
@@ -614,13 +778,18 @@
       <!-- Student Form -->
       <form id="student-login-form" onsubmit="handleStudentLogin(event)">
         <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
-          Enter your university student email or roll number to view your reported items and matching results.
+          Enter your university student email or roll number and password to view your reported items and matching results.
         </p>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">RUET Student Email or Roll Number *</label>
+          <input type="text" class="form-input" id="login-student-email" required placeholder="e.g., 2410027@student.ruet.ac.bd"
+            value="2410027@student.ruet.ac.bd">
+          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>, <code>2410029</code></span>
+        </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
-          <label class="form-label">University Email / ID *</label>
-          <input type="text" class="form-input" id="login-student-email" required placeholder="e.g., ali.raza@uni.edu"
-            value="ali.raza@uni.edu">
-          <span class="form-help">Sample accounts with records: ali.raza@uni.edu, sara.k@uni.edu, omar.s@uni.edu</span>
+          <label class="form-label">Student Password (Your Roll Number) *</label>
+          <input type="password" class="form-input" id="login-student-pass" required placeholder="Enter roll as password"
+            value="2410027">
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Sign In as Student</button>
       </form>
@@ -642,6 +811,115 @@
           <span class="form-help">Default demo credentials: admin / admin123</span>
         </div>
         <button type="submit" class="btn btn-danger" style="width:100%;">Sign In as Administrator</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Adding / Editing Student Account -->
+  <div class="modal-overlay" id="student-modal" style="display:none;" onclick="handleStudentModalOverlay(event)">
+    <div class="modal-content" style="max-width:460px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="font-size:1.15rem; font-weight:800;" id="student-modal-title">Register Student Account</h3>
+        <button onclick="closeStudentModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="student-mgmt-form" onsubmit="handleSaveStudentAccount(event)">
+        <input type="hidden" id="edit-student-original-roll" value="">
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">Roll Number *</label>
+          <input type="text" class="form-input" id="smgmt-roll" required placeholder="e.g. 2410027" oninput="autoFillStudentEmail(this.value)">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">University Email *</label>
+          <input type="email" class="form-input" id="smgmt-email" required placeholder="e.g. 2410027@student.ruet.ac.bd">
+        </div>
+        <div class="form-group" style="margin-bottom:1rem;">
+          <label class="form-label">Password *</label>
+          <input type="text" class="form-input" id="smgmt-pass" required placeholder="Password (default is roll)">
+        </div>
+        <div class="form-group" style="margin-bottom:1.5rem;">
+          <label class="form-label">Department / Info</label>
+          <input type="text" class="form-input" id="smgmt-dept" placeholder="ECE (RUET)" value="ECE (RUET)">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+          <button type="button" class="btn btn-outline" onclick="closeStudentModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal for Editing Item Details (Admin Operation) -->
+  <div class="modal-overlay" id="edit-item-modal" style="display:none;" onclick="handleEditItemModalOverlay(event)">
+    <div class="modal-content" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h3 style="font-size:1.2rem; font-weight:800;">✏️ Edit Item Details</h3>
+        <button onclick="closeEditItemModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      </div>
+
+      <form id="edit-item-form" onsubmit="handleSaveEditedItem(event)">
+        <input type="hidden" id="edit-item-id" value="">
+        <div class="form-row" style="display:grid; grid-template-columns:2fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Item Title / Name *</label>
+            <input type="text" class="form-input" id="edit-item-name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type *</label>
+            <select class="form-input" id="edit-item-type" required>
+              <option value="LOST">🔴 LOST</option>
+              <option value="FOUND">🟢 FOUND</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select class="form-input" id="edit-item-category" required>
+              <option value="Electronics">Electronics</option>
+              <option value="Keys & Wallets">Keys & Wallets</option>
+              <option value="Documents & Cards">Documents & Cards</option>
+              <option value="Bags & Backpacks">Bags & Backpacks</option>
+              <option value="Books & Stationery">Books & Stationery</option>
+              <option value="Clothing & Accessories">Clothing & Accessories</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status *</label>
+            <select class="form-input" id="edit-item-status" required>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="RECOVERED">RECOVERED</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" class="form-input" id="edit-item-location" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-input" id="edit-item-date" required>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label class="form-label">Contact Email / Phone *</label>
+          <input type="text" class="form-input" id="edit-item-contact" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" id="edit-item-desc" rows="3"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+          <button type="button" class="btn btn-outline" onclick="closeEditItemModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+        </div>
       </form>
     </div>
   </div>

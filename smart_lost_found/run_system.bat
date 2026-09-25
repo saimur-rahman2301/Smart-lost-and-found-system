@@ -13,7 +13,7 @@ cd /d "%~dp0"
 echo [1/3] Checking C++ Executable...
 if not exist "smart_lost_found_server.exe" (
     echo Compiling smart_lost_found_server.exe with g++...
-    C:\msys64\ucrt64\bin\g++.exe -std=c++17 -I"backend/include" "backend/src/main.cpp" -o "smart_lost_found_server.exe" -lws2_32
+    g++ -std=c++17 -I"backend/include" "backend/src/main.cpp" -o "smart_lost_found_server.exe" -lws2_32
     if errorlevel 1 (
         echo [ERROR] Compilation failed. Please ensure g++ is installed.
         pause

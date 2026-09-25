@@ -30,7 +30,10 @@ const SEED_ITEMS = [
   { id: "FOUND_6", type: "FOUND", name: "SanDisk 64GB Red & Black Flash Drive", category: "Electronics", description: "Found plugged into USB port of PC in CS Lab 3. Contains code folders.", brand: "SanDisk", color: "Red", location: "Computer Science Labs", date: "2026-09-21", keywords: "usb sandisk 64gb red black drive flash memory lab", contact: "ali.raza@uni.edu", status: "ACTIVE" },
   { id: "FOUND_7", type: "FOUND", name: "Ring of Keys with Blue Tag", category: "Keys & Wallets", description: "Found near bike stand in main parking lot. Three metal keys on ring.", brand: "Yale", color: "Silver", location: "Main Parking Area", date: "2026-09-18", keywords: "keys ring keychain metal blue parking bike dorm", contact: "omar.s@uni.edu", status: "ACTIVE" },
   { id: "FOUND_8", type: "FOUND", name: "Black iPhone in Clear Case", category: "Electronics", description: "Found on gym bench near locker room. Screen locked.", brand: "Apple", color: "Black", location: "Sports Complex / Gym", date: "2026-09-22", keywords: "iphone apple phone black mobile gym bench", contact: "hamza.t@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_9", type: "FOUND", name: "Blue Engineering Project Report File", category: "Documents & Cards", description: "Found in Lecture Hall 2, Eng Block A. Contains printed technical reports and schematics.", brand: "Generic", color: "Blue", location: "Engineering Block A", date: "2026-09-20", keywords: "documents folder report engineering file papers fyp", contact: "sara.k@uni.edu", status: "ACTIVE" }
+  { id: "FOUND_9", type: "FOUND", name: "Blue Engineering Project Report File", category: "Documents & Cards", description: "Found in Lecture Hall 2, Eng Block A. Contains printed technical reports and schematics.", brand: "Generic", color: "Blue", location: "Engineering Block A", date: "2026-09-20", keywords: "documents folder report engineering file papers fyp", contact: "sara.k@uni.edu", status: "ACTIVE" },
+  { id: "LOST_12", type: "LOST", name: "RUET Student ID Card (Roll 2410027)", category: "Documents & Cards", description: "Official RUET ECE student ID card with red strap, lost near Academic Building 2.", brand: "RUET", color: "Red", location: "Academic Building 2", date: "2026-09-24", keywords: "ruet student id card 2410027 ece lanyard red", contact: "2410027@student.ruet.ac.bd", status: "ACTIVE" },
+  { id: "FOUND_11", type: "FOUND", name: "Casio Scientific Calculator fx-991CW", category: "Electronics", description: "Found in Library 1st floor study room, has small RUET sticker on reverse side.", brand: "Casio", color: "Black", location: "Main Library", date: "2026-09-24", keywords: "calculator casio 991cw scientific black library 2410026", contact: "2410026@student.ruet.ac.bd", status: "ACTIVE" },
+  { id: "LOST_13", type: "LOST", name: "Lenovo ThinkPad Wireless Mouse", category: "Electronics", description: "Black Lenovo optical mouse left in Central Computer Center after lab session.", brand: "Lenovo", color: "Black", location: "Central Computer Center", date: "2026-09-23", keywords: "lenovo mouse wireless optical black computer center 2410029", contact: "2410029@student.ruet.ac.bd", status: "ACTIVE" }
 ];
 
 // ── System Global State ────────────────────────────────────────────────────
@@ -75,6 +78,124 @@ function getLocalItems() {
 function saveLocalItems(items) {
   localStorage.setItem('smart_lost_found_items', JSON.stringify(items));
 }
+
+// ── Registered RUET Students Store ─────────────────────────────────────────
+const DEFAULT_STUDENTS = [
+  { roll: "2410027", email: "2410027@student.ruet.ac.bd", password: "2410027", dept: "ECE (RUET)", registeredAt: "2026-09-24 10:00", status: "Active" },
+  { roll: "2410026", email: "2410026@student.ruet.ac.bd", password: "2410026", dept: "ECE (RUET)", registeredAt: "2026-09-24 10:05", status: "Active" },
+  { roll: "2410029", email: "2410029@student.ruet.ac.bd", password: "2410029", dept: "ECE (RUET)", registeredAt: "2026-09-24 10:10", status: "Active" }
+];
+
+function getRegisteredStudents() {
+  const data = localStorage.getItem('smart_lost_found_registered_students');
+  if (!data) {
+    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(DEFAULT_STUDENTS));
+    return [...DEFAULT_STUDENTS];
+  }
+  try {
+    const list = JSON.parse(data);
+    return Array.isArray(list) && list.length > 0 ? list : [...DEFAULT_STUDENTS];
+  } catch (e) {
+    return [...DEFAULT_STUDENTS];
+  }
+}
+
+function saveRegisteredStudents(list) {
+  localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(list));
+}
+
+// ── Search & Query History Audit Store ──────────────────────────────────────
+const DEFAULT_SEARCH_HISTORY = [
+  { id: "SH_1", timestamp: "2026-09-24 16:45:10", query: "student id card 2410027", category: "Documents & Cards", type: "LOST", resultsCount: 1, searchedBy: "2410027@student.ruet.ac.bd" },
+  { id: "SH_2", timestamp: "2026-09-24 16:20:05", query: "casio calculator 991cw", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "2410026@student.ruet.ac.bd" },
+  { id: "SH_3", timestamp: "2026-09-24 15:55:40", query: "wireless mouse lenovo", category: "Electronics", type: "LOST", resultsCount: 1, searchedBy: "2410029@student.ruet.ac.bd" },
+  { id: "SH_4", timestamp: "2026-09-23 14:10:12", query: "sandisk red flash drive cs lab", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "ali.raza@uni.edu" },
+  { id: "SH_5", timestamp: "2026-09-22 11:35:18", query: "keys blue tag parking", category: "Keys & Wallets", type: "FOUND", resultsCount: 1, searchedBy: "omar.s@uni.edu" },
+  { id: "SH_6", timestamp: "2026-09-22 10:15:30", query: "black iphone gym locker", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "hamza.t@uni.edu" },
+  { id: "SH_7", timestamp: "2026-09-21 17:05:22", query: "engineering project report folder", category: "Documents & Cards", type: "FOUND", resultsCount: 1, searchedBy: "sara.k@uni.edu" },
+  { id: "SH_8", timestamp: "2026-09-20 12:40:00", query: "casio fx-991ex calculator", category: "Electronics", type: "LOST", resultsCount: 2, searchedBy: "admin@university.edu" }
+];
+
+function getSearchHistory() {
+  const data = localStorage.getItem('smart_lost_found_search_history');
+  if (!data) {
+    localStorage.setItem('smart_lost_found_search_history', JSON.stringify(DEFAULT_SEARCH_HISTORY));
+    return [...DEFAULT_SEARCH_HISTORY];
+  }
+  try {
+    const list = JSON.parse(data);
+    return Array.isArray(list) ? list : [...DEFAULT_SEARCH_HISTORY];
+  } catch (e) {
+    return [...DEFAULT_SEARCH_HISTORY];
+  }
+}
+
+function logSearchHistory(query, category = 'ALL', type = 'ALL', count = 0) {
+  if (!query || query.trim() === '') return;
+  const history = getSearchHistory();
+  const now = new Date();
+  const dateStr = now.toISOString().replace('T', ' ').substring(0, 19);
+  const byUser = currentUser ? (currentUser.contact || currentUser.role) : 'Anonymous';
+
+  if (history.length > 0 && history[0].query === query.trim() && history[0].searchedBy === byUser) {
+    return;
+  }
+
+  const entry = {
+    id: 'SH_' + Date.now(),
+    timestamp: dateStr,
+    query: query.trim(),
+    category: category || 'ALL',
+    type: type || 'ALL',
+    resultsCount: count,
+    searchedBy: byUser
+  };
+
+  history.unshift(entry);
+  if (history.length > 100) history.pop();
+  localStorage.setItem('smart_lost_found_search_history', JSON.stringify(history));
+}
+
+function clearSearchHistory() {
+  if (!confirm('Are you sure you want to clear all search and query history records?')) return;
+  localStorage.setItem('smart_lost_found_search_history', JSON.stringify([]));
+  renderSearchHistoryTable();
+  showToast('Search query audit history cleared.', 'success');
+}
+
+// ── Admin Security Credentials Store ───────────────────────────────────────
+function getAdminPassword() {
+  return localStorage.getItem('smart_lost_found_admin_password') || 'admin123';
+}
+
+function setAdminPassword(newPass) {
+  localStorage.setItem('smart_lost_found_admin_password', newPass);
+}
+
+function handleAdminPasswordChange(event) {
+  if (event) event.preventDefault();
+  const currPass = document.getElementById('curr-admin-pass').value;
+  const newPass = document.getElementById('new-admin-pass').value;
+  const confPass = document.getElementById('confirm-admin-pass').value;
+
+  if (currPass !== getAdminPassword()) {
+    showToast('Current admin password does not match!', 'error');
+    return;
+  }
+  if (newPass !== confPass) {
+    showToast('New passwords do not match!', 'error');
+    return;
+  }
+  if (newPass.length < 4) {
+    showToast('New password must be at least 4 characters long!', 'error');
+    return;
+  }
+
+  setAdminPassword(newPass);
+  document.getElementById('admin-password-form').reset();
+  showToast('Admin password updated successfully! Use your new password for next logins.', 'success');
+}
+
 
 // ── Engine Status UI Indicator ─────────────────────────────────────────────
 function updateEngineBadge(isLive, labelText) {
@@ -131,6 +252,7 @@ function updateRoleUI() {
   const label = document.getElementById('current-user-label');
   const authBtn = document.getElementById('auth-action-btn');
   const navBrowse = document.getElementById('nav-item-browse');
+  const navSettings = document.getElementById('nav-item-settings');
   const navStats = document.getElementById('nav-item-stats');
   const navSync = document.getElementById('nav-item-sync');
   const heroBrowseBtn = document.getElementById('hero-browse-btn');
@@ -146,6 +268,7 @@ function updateRoleUI() {
     }
 
     if (navBrowse) navBrowse.style.display = 'block';
+    if (navSettings) navSettings.style.display = 'block';
     // REMOVED "DSA Engine & Stats" in navbar per user request!
     if (navStats) navStats.style.display = 'none';
     if (navSync) navSync.style.display = 'block';
@@ -165,6 +288,7 @@ function updateRoleUI() {
     }
 
     if (navBrowse) navBrowse.style.display = 'none';
+    if (navSettings) navSettings.style.display = 'none';
     if (navStats) navStats.style.display = 'none';
     if (navSync) navSync.style.display = 'none';
     if (heroBrowseBtn) heroBrowseBtn.style.display = 'none';
@@ -189,9 +313,9 @@ function switchView(viewName) {
     return;
   }
 
-  if ((viewName === 'browse' || viewName === 'stats') && currentUser.role !== 'ADMIN') {
-    showToast('Campus-wide browsing is restricted to administrators', 'error');
-    handleSignOut();
+  if ((viewName === 'browse' || viewName === 'stats' || viewName === 'settings') && currentUser.role !== 'ADMIN') {
+    showToast('Campus-wide browsing and settings are restricted to administrators', 'error');
+    switchView('dashboard');
     return;
   }
 
@@ -217,6 +341,8 @@ function switchView(viewName) {
     populateMatchDropdown();
   } else if (viewName === 'stats') {
     loadStatistics();
+  } else if (viewName === 'settings') {
+    loadSettingsView();
   }
 }
 
@@ -578,6 +704,10 @@ async function loadBrowseItems() {
 
   const items = await fetchItems(currentFilter);
   allItemsCache = items;
+
+  if (currentFilter.q && currentFilter.q.trim() !== '') {
+    logSearchHistory(currentFilter.q, currentFilter.category, currentFilter.type, items ? items.length : 0);
+  }
 
   if (!items || items.length === 0) {
     grid.innerHTML = `
@@ -956,6 +1086,10 @@ async function runMatchAlgorithm() {
     }
   }
 
+  if (lostItem) {
+    logSearchHistory(`Match Evaluation: ${lostItem.name}`, lostItem.category, 'MATCH', matches ? matches.length : 0);
+  }
+
   if (!matches || matches.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:3rem; background:white; border-radius:var(--radius-md); border:1px dashed var(--border);">
@@ -1164,10 +1298,14 @@ function showItemModal(itemId) {
       </div>
     </div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:1rem; flex-wrap:wrap; gap:0.5rem;">
       <span style="font-size:0.8125rem; color:var(--text-muted); font-family:var(--font-mono);">ID: ${item.id}</span>
-      <div style="display:flex; gap:0.5rem;">
+      <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
         ${!isRecovered ? `<button class="btn btn-success btn-sm" onclick="markSingleRecovered('${item.id}')">Mark as Recovered</button>` : ''}
+        ${currentUser && currentUser.role === 'ADMIN' ? `
+          <button class="btn btn-outline btn-sm" onclick="closeModal(); openEditItemModal('${item.id}')">✏️ Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="closeModal(); deleteItem('${item.id}')">🗑️ Delete</button>
+        ` : ''}
         <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
       </div>
     </div>
@@ -1231,18 +1369,37 @@ function showStartingScreen() {
 async function handleStartStudentLogin(event) {
   if (event) event.preventDefault();
   const emailInput = document.getElementById('start-student-email') || document.getElementById('login-student-email');
-  const email = (emailInput && emailInput.value.trim()) ? emailInput.value.trim() : 'ali.raza@uni.edu';
+  const passInput = document.getElementById('start-student-pass') || document.getElementById('login-student-pass');
 
-  currentUser = {
-    role: 'STUDENT',
-    contact: email,
-    name: `Student (${email})`,
-    token: ''
-  };
-  localStorage.setItem('smart_lost_found_user', JSON.stringify(currentUser));
-  enterWebsite();
-  showToast(`Welcome! Logged in as Student: ${email}`, 'success');
-  switchView('dashboard');
+  const enteredIdentifier = (emailInput && emailInput.value.trim()) ? emailInput.value.trim().toLowerCase() : '';
+  const enteredPass = (passInput && passInput.value.trim()) ? passInput.value.trim() : '';
+
+  if (!enteredIdentifier || !enteredPass) {
+    showToast('Please enter both your Student ID/Email and password.', 'error');
+    return;
+  }
+
+  const registeredStudents = getRegisteredStudents();
+  const matchedStudent = registeredStudents.find(s =>
+    (s.email.toLowerCase() === enteredIdentifier || s.roll.toLowerCase() === enteredIdentifier) &&
+    s.password === enteredPass
+  );
+
+  if (matchedStudent) {
+    currentUser = {
+      role: 'STUDENT',
+      contact: matchedStudent.email,
+      roll: matchedStudent.roll,
+      name: `RUET Student (${matchedStudent.roll})`,
+      token: ''
+    };
+    localStorage.setItem('smart_lost_found_user', JSON.stringify(currentUser));
+    enterWebsite();
+    showToast(`Welcome! Logged in as RUET Student (Roll: ${matchedStudent.roll})`, 'success');
+    switchView('dashboard');
+  } else {
+    showToast('Access denied! Only registered RUET student accounts (2410027, 2410026, 2410029) can log in with their correct roll password.', 'error');
+  }
 }
 
 async function handleStartAdminLogin(event) {
@@ -1253,6 +1410,7 @@ async function handleStartAdminLogin(event) {
   const password = passInput ? passInput.value.trim() : 'admin123';
 
   let adminSuccess = false;
+  const currentAdminPass = getAdminPassword();
 
   if (isBackendOnline) {
     try {
@@ -1270,8 +1428,8 @@ async function handleStartAdminLogin(event) {
     }
   }
 
-  // Client-side authentication fallback (accepts admin/admin123)
-  if (!adminSuccess && username === 'admin' && password === 'admin123') {
+  // Client-side authentication check (supports updated admin password or default admin123)
+  if (!adminSuccess && username === 'admin' && (password === currentAdminPass || password === 'admin123')) {
     adminSuccess = true;
   }
 
@@ -1287,7 +1445,7 @@ async function handleStartAdminLogin(event) {
     showToast('Admin Portal Unlocked! Full campus access granted.', 'success');
     switchView('browse');
   } else {
-    showToast('Invalid admin credentials. Use admin / admin123', 'error');
+    showToast('Invalid admin credentials. Please enter the correct admin password.', 'error');
   }
 }
 
@@ -1321,6 +1479,370 @@ function switchAuthTab(tab) {
 
 const handleStudentLogin = handleStartStudentLogin;
 const handleAdminLogin = handleStartAdminLogin;
+
+// ── Admin Settings & Control Center ────────────────────────────────────────
+function switchSettingsTab(tabName) {
+  const tabBtns = document.querySelectorAll('.settings-tab-btn');
+  tabBtns.forEach(btn => btn.classList.remove('active'));
+
+  const activeBtn = document.getElementById(`stab-btn-${tabName}`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const panes = document.querySelectorAll('.settings-pane');
+  panes.forEach(p => {
+    p.style.display = 'none';
+    p.classList.remove('active');
+  });
+
+  const activePane = document.getElementById(`spane-${tabName}`);
+  if (activePane) {
+    activePane.style.display = 'block';
+    activePane.classList.add('active');
+  }
+
+  if (tabName === 'students') {
+    renderRegisteredStudentsTable();
+  } else if (tabName === 'history') {
+    renderSearchHistoryTable();
+  } else if (tabName === 'items') {
+    renderItemsControlTable();
+  }
+}
+
+function loadSettingsView() {
+  if (currentUser.role !== 'ADMIN') {
+    showToast('Access to settings is restricted to administrators', 'error');
+    switchView('dashboard');
+    return;
+  }
+  const activePane = document.querySelector('.settings-pane.active');
+  if (activePane && activePane.id === 'spane-history') {
+    renderSearchHistoryTable();
+  } else if (activePane && activePane.id === 'spane-items') {
+    renderItemsControlTable();
+  } else {
+    renderRegisteredStudentsTable();
+  }
+}
+
+// ── Registered Students Management (Admin Only) ───────────────────────────
+function renderRegisteredStudentsTable() {
+  const tbody = document.getElementById('students-table-body');
+  if (!tbody) return;
+
+  const students = getRegisteredStudents();
+  if (students.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No student accounts found. Click "Register New Student" to add.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = students.map(s => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:0.75rem 1rem; font-weight:700; color:var(--primary); font-family:var(--font-mono);">${escapeHtml(s.roll)}</td>
+      <td style="padding:0.75rem 1rem;">${escapeHtml(s.email)}</td>
+      <td style="padding:0.75rem 1rem;">${escapeHtml(s.dept || 'ECE (RUET)')}</td>
+      <td style="padding:0.75rem 1rem;">
+        <span class="badge" style="background:#dcfce7; color:#166534; font-size:0.75rem;">${escapeHtml(s.status || 'Active')}</span>
+      </td>
+      <td style="padding:0.75rem 1rem; font-family:var(--font-mono);">
+        <code style="background:var(--bg-subtle); padding:0.15rem 0.4rem; border-radius:4px;">${escapeHtml(s.password)}</code>
+      </td>
+      <td style="padding:0.75rem 1rem; text-align:right;">
+        <button class="btn btn-outline btn-xs" onclick="openStudentModal('${escapeHtml(s.roll)}')" style="margin-right:0.35rem;">✏️ Edit</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteStudentAccount('${escapeHtml(s.roll)}')">🗑️ Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openStudentModal(roll = null) {
+  const modal = document.getElementById('student-modal');
+  const title = document.getElementById('student-modal-title');
+  const origRollInput = document.getElementById('edit-student-original-roll');
+  const rollInput = document.getElementById('smgmt-roll');
+  const emailInput = document.getElementById('smgmt-email');
+  const passInput = document.getElementById('smgmt-pass');
+  const deptInput = document.getElementById('smgmt-dept');
+
+  if (roll) {
+    const students = getRegisteredStudents();
+    const st = students.find(s => s.roll === roll);
+    if (st) {
+      if (title) title.textContent = '✏️ Edit Student Account';
+      if (origRollInput) origRollInput.value = st.roll;
+      if (rollInput) rollInput.value = st.roll;
+      if (emailInput) emailInput.value = st.email;
+      if (passInput) passInput.value = st.password;
+      if (deptInput) deptInput.value = st.dept || 'ECE (RUET)';
+    }
+  } else {
+    if (title) title.textContent = '➕ Register New Student Account';
+    if (origRollInput) origRollInput.value = '';
+    if (rollInput) rollInput.value = '';
+    if (emailInput) emailInput.value = '';
+    if (passInput) passInput.value = '';
+    if (deptInput) deptInput.value = 'ECE (RUET)';
+  }
+
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeStudentModal() {
+  const modal = document.getElementById('student-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleStudentModalOverlay(event) {
+  if (event.target.id === 'student-modal') {
+    closeStudentModal();
+  }
+}
+
+function autoFillStudentEmail(val) {
+  const origRoll = document.getElementById('edit-student-original-roll');
+  if (origRoll && origRoll.value) return; // Editing existing, do not overwrite
+
+  const clean = (val || '').trim();
+  if (clean) {
+    const emailInput = document.getElementById('smgmt-email');
+    const passInput = document.getElementById('smgmt-pass');
+    if (emailInput && (!emailInput.value.includes('@') || emailInput.value.endsWith('@student.ruet.ac.bd'))) {
+      emailInput.value = `${clean}@student.ruet.ac.bd`;
+    }
+    if (passInput && (!passInput.value || passInput.value === clean.slice(0, -1))) {
+      passInput.value = clean;
+    }
+  }
+}
+
+function handleSaveStudentAccount(event) {
+  if (event) event.preventDefault();
+  const origRoll = (document.getElementById('edit-student-original-roll').value || '').trim();
+  const roll = (document.getElementById('smgmt-roll').value || '').trim();
+  const email = (document.getElementById('smgmt-email').value || '').trim();
+  const password = (document.getElementById('smgmt-pass').value || '').trim();
+  const dept = (document.getElementById('smgmt-dept').value || '').trim() || 'ECE (RUET)';
+
+  if (!roll || !email || !password) {
+    showToast('Please fill in all required fields.', 'error');
+    return;
+  }
+
+  const students = getRegisteredStudents();
+
+  if (origRoll) {
+    const idx = students.findIndex(s => s.roll === origRoll);
+    if (idx !== -1) {
+      students[idx] = { ...students[idx], roll, email, password, dept };
+      saveRegisteredStudents(students);
+      showToast(`Student ${roll} account updated successfully!`, 'success');
+    }
+  } else {
+    if (students.some(s => s.roll === roll || s.email.toLowerCase() === email.toLowerCase())) {
+      showToast(`Student with roll ${roll} or email ${email} already exists!`, 'error');
+      return;
+    }
+    students.push({
+      roll,
+      email,
+      password,
+      dept,
+      registeredAt: new Date().toISOString().replace('T', ' ').substring(0, 16),
+      status: 'Active'
+    });
+    saveRegisteredStudents(students);
+    showToast(`New student ${roll} registered successfully!`, 'success');
+  }
+
+  closeStudentModal();
+  renderRegisteredStudentsTable();
+}
+
+function deleteStudentAccount(roll) {
+  if (!confirm(`Are you sure you want to remove student roll ${roll}?`)) return;
+  let students = getRegisteredStudents();
+  students = students.filter(s => s.roll !== roll);
+  saveRegisteredStudents(students);
+  renderRegisteredStudentsTable();
+  showToast(`Student account ${roll} removed.`, 'success');
+}
+
+// ── Search & Query History Rendering (Admin Only) ──────────────────────────
+function renderSearchHistoryTable() {
+  const tbody = document.getElementById('history-table-body');
+  if (!tbody) return;
+
+  const history = getSearchHistory();
+  if (history.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No search audit records yet. Searches performed in Browse & Match will appear here.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = history.map(h => `
+    <tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:0.75rem 1rem; font-family:var(--font-mono); font-size:0.8rem; color:var(--text-secondary);">${escapeHtml(h.timestamp)}</td>
+      <td style="padding:0.75rem 1rem; font-weight:600; color:var(--text-primary);">
+        🔍 "${escapeHtml(h.query)}"
+      </td>
+      <td style="padding:0.75rem 1rem;">
+        <span class="badge" style="background:var(--bg-subtle); color:var(--text-secondary); font-size:0.75rem;">${escapeHtml(h.category)}</span>
+      </td>
+      <td style="padding:0.75rem 1rem;">
+        <span class="badge ${h.type === 'LOST' ? 'badge-lost' : (h.type === 'FOUND' ? 'badge-found' : 'badge-active')}" style="font-size:0.75rem;">${escapeHtml(h.type)}</span>
+      </td>
+      <td style="padding:0.75rem 1rem; font-weight:700;">${h.resultsCount} item(s)</td>
+      <td style="padding:0.75rem 1rem; font-size:0.8rem; color:var(--text-secondary); font-family:var(--font-mono);">${escapeHtml(h.searchedBy)}</td>
+    </tr>
+  `).join('');
+}
+
+// ── Items Full Control & Quick Editor (Admin Only) ─────────────────────────
+function renderItemsControlTable() {
+  const tbody = document.getElementById('items-mgmt-table-body');
+  if (!tbody) return;
+
+  const items = getLocalItems();
+  if (items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:1.5rem; color:var(--text-muted);">No items recorded in the system.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map(it => {
+    const isLost = it.type === 'LOST';
+    const isRec = it.status === 'RECOVERED';
+    return `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:0.75rem 1rem; font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted);">${escapeHtml(it.id)}</td>
+        <td style="padding:0.75rem 1rem;">
+          <span class="badge ${isLost ? 'badge-lost' : 'badge-found'}" style="font-size:0.75rem;">${it.type}</span>
+        </td>
+        <td style="padding:0.75rem 1rem; font-weight:700; color:var(--text-primary);">
+          ${escapeHtml(it.name)}
+        </td>
+        <td style="padding:0.75rem 1rem; font-size:0.825rem;">${escapeHtml(it.category)}</td>
+        <td style="padding:0.75rem 1rem; font-size:0.825rem;">📍 ${escapeHtml(it.location)}</td>
+        <td style="padding:0.75rem 1rem; font-size:0.825rem;">📅 ${escapeHtml(it.date)}</td>
+        <td style="padding:0.75rem 1rem;">
+          <span class="badge ${isRec ? 'badge-recovered' : 'badge-active'}" style="font-size:0.75rem;">${it.status}</span>
+        </td>
+        <td style="padding:0.75rem 1rem; text-align:right; white-space:nowrap;">
+          <button class="btn btn-outline btn-xs" onclick="openEditItemModal('${escapeHtml(it.id)}')" style="margin-right:0.35rem;">✏️ Edit</button>
+          <button class="btn btn-danger btn-xs" onclick="deleteItem('${escapeHtml(it.id)}')">🗑️ Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openEditItemModal(itemId) {
+  const items = getLocalItems();
+  const item = items.find(i => i.id === itemId);
+  if (!item) {
+    showToast('Item not found!', 'error');
+    return;
+  }
+
+  document.getElementById('edit-item-id').value = item.id;
+  document.getElementById('edit-item-name').value = item.name;
+  document.getElementById('edit-item-type').value = item.type;
+  document.getElementById('edit-item-category').value = item.category;
+  document.getElementById('edit-item-status').value = item.status;
+  document.getElementById('edit-item-location').value = item.location;
+  document.getElementById('edit-item-date').value = item.date;
+  document.getElementById('edit-item-contact').value = item.contact;
+  document.getElementById('edit-item-desc').value = item.description || '';
+
+  const modal = document.getElementById('edit-item-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeEditItemModal() {
+  const modal = document.getElementById('edit-item-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleEditItemModalOverlay(event) {
+  if (event.target.id === 'edit-item-modal') {
+    closeEditItemModal();
+  }
+}
+
+async function handleSaveEditedItem(event) {
+  if (event) event.preventDefault();
+
+  const id = document.getElementById('edit-item-id').value;
+  const name = document.getElementById('edit-item-name').value.trim();
+  const type = document.getElementById('edit-item-type').value;
+  const category = document.getElementById('edit-item-category').value;
+  const status = document.getElementById('edit-item-status').value;
+  const location = document.getElementById('edit-item-location').value.trim();
+  const date = document.getElementById('edit-item-date').value;
+  const contact = document.getElementById('edit-item-contact').value.trim();
+  const description = document.getElementById('edit-item-desc').value.trim();
+
+  const items = getLocalItems();
+  const idx = items.findIndex(i => i.id === id);
+  if (idx === -1) {
+    showToast('Item to update not found!', 'error');
+    return;
+  }
+
+  items[idx] = {
+    ...items[idx],
+    name,
+    type,
+    category,
+    status,
+    location,
+    date,
+    contact,
+    description
+  };
+
+  saveLocalItems(items);
+
+  // Sync to C++ backend if online
+  if (isBackendOnline) {
+    try {
+      await fetch(`${API_BASE}/api/items`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(items[idx])
+      });
+    } catch (e) {
+      console.warn('Backend update failed; saved locally.');
+    }
+  }
+
+  closeEditItemModal();
+  renderItemsControlTable();
+  loadDashboard();
+  showToast(`Item #${id} updated successfully!`, 'success');
+}
+
+async function deleteItem(itemId) {
+  if (!confirm(`Are you sure you want to permanently delete item #${itemId}? This action cannot be undone.`)) {
+    return;
+  }
+
+  let items = getLocalItems();
+  items = items.filter(i => i.id !== itemId);
+  saveLocalItems(items);
+
+  if (isBackendOnline) {
+    try {
+      await fetch(`${API_BASE}/api/items/${itemId}`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('Backend delete failed; removed locally.');
+    }
+  }
+
+  renderItemsControlTable();
+  loadDashboard();
+  const browseGrid = document.getElementById('browse-items-grid');
+  if (browseGrid) loadBrowseItems();
+  showToast(`Item #${itemId} permanently removed from system.`, 'success');
+}
 
 // ── Statistics & DSA Inspector (Admin Only) ────────────────────────────────
 async function loadStatistics() {
