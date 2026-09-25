@@ -25,7 +25,6 @@
 // ── Global System State ────────────────────────────────────────────────────
 const int PORT = 8080;
 std::string DATA_FILE = "items.json";
-std::string FRONTEND_DIR = "smart_lost_found/frontend";
 
 HashTable g_hashTable(101); // 101 prime buckets
 BST g_bst;
@@ -682,10 +681,7 @@ void handleClient(SOCKET clientSocket)
         std::vector<std::string> candidates = {
             target,
             "./" + target,
-            "../" + target,
-            FRONTEND_DIR + "/" + target,
-            "frontend/" + target,
-            "../" + FRONTEND_DIR + "/" + target
+            "../" + target
         };
 
         std::string content = "";
