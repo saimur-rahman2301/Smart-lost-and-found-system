@@ -87,17 +87,34 @@ const DEFAULT_STUDENTS = [
 ];
 
 function getRegisteredStudents() {
-  const data = localStorage.getItem('smart_lost_found_registered_students');
-  if (!data) {
-    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(DEFAULT_STUDENTS));
-    return [...DEFAULT_STUDENTS];
-  }
+  let list = [];
   try {
-    const list = JSON.parse(data);
-    return Array.isArray(list) && list.length > 0 ? list : [...DEFAULT_STUDENTS];
+    const data = localStorage.getItem('smart_lost_found_registered_students');
+    if (data) {
+      list = JSON.parse(data);
+    }
   } catch (e) {
-    return [...DEFAULT_STUDENTS];
+    list = [];
   }
+  if (!Array.isArray(list) || list.length === 0) {
+    list = [...DEFAULT_STUDENTS];
+    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(list));
+    return list;
+  }
+
+  // Ensure the 3 core RUET accounts are always present in the list
+  let updated = false;
+  DEFAULT_STUDENTS.forEach(defSt => {
+    if (!list.some(s => s.roll === defSt.roll)) {
+      list.push(defSt);
+      updated = true;
+    }
+  });
+
+  if (updated) {
+    localStorage.setItem('smart_lost_found_registered_students', JSON.stringify(list));
+  }
+  return list;
 }
 
 function saveRegisteredStudents(list) {
@@ -1368,11 +1385,17 @@ function showStartingScreen() {
 
 async function handleStartStudentLogin(event) {
   if (event) event.preventDefault();
-  const emailInput = document.getElementById('start-student-email') || document.getElementById('login-student-email');
-  const passInput = document.getElementById('start-student-pass') || document.getElementById('login-student-pass');
+  let emailInput, passInput;
+  if (event && event.target && event.target.id === 'student-login-form') {
+    emailInput = document.getElementById('login-student-email');
+    passInput = document.getElementById('login-student-pass');
+  } else {
+    emailInput = document.getElementById('start-student-email');
+    passInput = document.getElementById('start-student-pass');
+  }
 
-  const enteredIdentifier = (emailInput && emailInput.value.trim()) ? emailInput.value.trim().toLowerCase() : '';
-  const enteredPass = (passInput && passInput.value.trim()) ? passInput.value.trim() : '';
+  const enteredIdentifier = (emailInput && emailInput.value) ? emailInput.value.trim().toLowerCase() : '';
+  const enteredPass = (passInput && passInput.value) ? passInput.value.trim() : '';
 
   if (!enteredIdentifier || !enteredPass) {
     showToast('Please enter both your Student ID/Email and password.', 'error');
@@ -1404,10 +1427,17 @@ async function handleStartStudentLogin(event) {
 
 async function handleStartAdminLogin(event) {
   if (event) event.preventDefault();
-  const userInput = document.getElementById('start-admin-user') || document.getElementById('login-admin-user');
-  const passInput = document.getElementById('start-admin-pass') || document.getElementById('login-admin-pass');
-  const username = userInput ? userInput.value.trim() : 'admin';
-  const password = passInput ? passInput.value.trim() : 'admin123';
+  let userInput, passInput;
+  if (event && event.target && event.target.id === 'admin-login-form') {
+    userInput = document.getElementById('login-admin-user');
+    passInput = document.getElementById('login-admin-pass');
+  } else {
+    userInput = document.getElementById('start-admin-user');
+    passInput = document.getElementById('start-admin-pass');
+  }
+
+  const username = (userInput && userInput.value) ? userInput.value.trim() : 'admin';
+  const password = (passInput && passInput.value) ? passInput.value.trim() : 'admin123';
 
   let adminSuccess = false;
   const currentAdminPass = getAdminPassword();
@@ -1925,6 +1955,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Detect live C++ server in background
   await checkBackendHealth();
+
+  // Validate student user session against registered accounts
+  if (currentUser) {
+    if (currentUser.role === 'STUDENT') {
+      const registeredStudents = getRegisteredStudents();
+      const isValid = registeredStudents.some(s =>
+        s.email.toLowerCase() === (currentUser.contact || '').toLowerCase() ||
+        s.roll === currentUser.roll
+      );
+      if (!isValid) {
+        currentUser = null;
+        localStorage.removeItem('smart_lost_found_user');
+      }
+    }
+  }
 
   if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STUDENT')) {
     enterWebsite();
