@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Lost & Found | Find It. Match It. Return It.</title>
-  <link rel="stylesheet" href="css/style.css?v=2.2">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -15,20 +15,22 @@
 
 <body>
 
-  <!-- ===================================================================
+  <!-- 
        STARTING GATEWAY LOGIN PAGE (Mandatory Entry Before Website)
-       =================================================================== -->
+        -->
   <div id="starting-login-screen" class="starting-login-wrapper" style="display:flex;">
     <div class="starting-login-card">
       <div class="starting-brand-header">
         <div class="starting-brand-icon">🔍</div>
         <h1 class="starting-brand-title">SMART LOST &amp; FOUND</h1>
-        <p class="starting-brand-subtitle">University Property Matching &amp; Recovery System &bull; Powered by DSA Engine</p>
+        <p class="starting-brand-subtitle">University Property Matching &amp; Recovery System &bull; Powered by DSA
+          Engine</p>
       </div>
 
       <!-- Portal Selector Tabs -->
       <div class="starting-tabs">
-        <button type="button" class="starting-tab-btn active" id="start-tab-student" onclick="switchStartTab('STUDENT')">
+        <button type="button" class="starting-tab-btn active" id="start-tab-student"
+          onclick="switchStartTab('STUDENT')">
           👨‍🎓 Student Portal
         </button>
         <button type="button" class="starting-tab-btn" id="start-tab-admin" onclick="switchStartTab('ADMIN')">
@@ -39,19 +41,24 @@
       <!-- Student Portal Form -->
       <form id="start-student-form" onsubmit="handleStartStudentLogin(event)">
         <div class="start-form-desc">
-          <strong>👨‍🎓 RUET Student Access:</strong> Sign in with your registered student ID/email and roll password to access your belongings and match results.
+          <strong>👨‍🎓 RUET Student Access:</strong> Sign in with your registered student ID/email and roll password to
+          access your belongings and match results.
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">RUET Student Email or Roll Number *</label>
-          <input type="text" class="form-input" id="start-student-email" required placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
-          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>, <code>2410029</code></span>
+          <input type="text" class="form-input" id="start-student-email" required
+            placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
+          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>,
+            <code>2410029</code></span>
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Student Password (Your Roll Number) *</label>
-          <input type="password" class="form-input" id="start-student-pass" required placeholder="Enter roll as password" value="2410027">
+          <input type="password" class="form-input" id="start-student-pass" required
+            placeholder="Enter roll as password" value="2410027">
           <span class="form-help">Default password is your roll (e.g., <code>2410027</code>)</span>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700;">
+        <button type="submit" class="btn btn-primary"
+          style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700;">
           🚀 Enter Website as Student
         </button>
       </form>
@@ -59,7 +66,8 @@
       <!-- Admin Portal Form -->
       <form id="start-admin-form" style="display:none;" onsubmit="handleStartAdminLogin(event)">
         <div class="start-form-desc">
-          <strong>🛡️ Administrator Access:</strong> Lost &amp; Found department staff portal for campus-wide items management and worldwide live deployment.
+          <strong>🛡️ Administrator Access:</strong> Lost &amp; Found department staff portal for campus-wide items
+          management and worldwide live deployment.
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Admin Username</label>
@@ -67,10 +75,12 @@
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Admin Password</label>
-          <input type="password" class="form-input" id="start-admin-pass" required placeholder="••••••••" value="admin123">
+          <input type="password" class="form-input" id="start-admin-pass" required placeholder="••••••••"
+            value="admin123">
           <span class="form-help">Default demo credentials: <code>admin</code> / <code>admin123</code></span>
         </div>
-        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700; background: linear-gradient(135deg, #2563eb, #7c3aed); border:none;">
+        <button type="submit" class="btn btn-primary"
+          style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700; background: linear-gradient(135deg, #2563eb, #7c3aed); border:none;">
           🔐 Enter Website as Administrator
         </button>
       </form>
@@ -95,9 +105,12 @@
       <!-- Primary Navigation Links -->
       <nav>
         <ul class="nav-links">
-          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">📊 My Belongings</button></li>
-          <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button></li>
-          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report Found</button></li>
+          <li><button class="nav-btn active" id="nav-dashboard" onclick="switchView('dashboard')">📊 My
+              Belongings</button></li>
+          <li><button class="nav-btn" id="nav-report-lost" onclick="switchView('report-lost')">🔴 Report Lost</button>
+          </li>
+          <li><button class="nav-btn" id="nav-report-found" onclick="switchView('report-found')">🟢 Report
+              Found</button></li>
           <li><button class="nav-btn" id="nav-matches" onclick="switchView('matches')">🎯 Match Results</button></li>
           <!-- Admin-Only Navigation (Dynamically shown when admin logs in) -->
           <li id="nav-item-browse" style="display:none;"><button class="nav-btn" id="nav-browse"
@@ -601,13 +614,15 @@
       <div class="section-header" style="margin-bottom:1.5rem;">
         <div>
           <h2 class="section-title">⚙️ Admin Settings &amp; Control Center</h2>
-          <p class="section-subtitle">Manage registered students, view search history, update admin credentials, and edit items.</p>
+          <p class="section-subtitle">Manage registered students, view search history, update admin credentials, and
+            edit items.</p>
         </div>
       </div>
 
       <!-- Settings Navigation Tabs -->
       <div class="settings-nav-tabs">
-        <button type="button" class="settings-tab-btn active" id="stab-btn-students" onclick="switchSettingsTab('students')">
+        <button type="button" class="settings-tab-btn active" id="stab-btn-students"
+          onclick="switchSettingsTab('students')">
           👥 Registered Students
         </button>
         <button type="button" class="settings-tab-btn" id="stab-btn-history" onclick="switchSettingsTab('history')">
@@ -623,7 +638,8 @@
 
       <!-- Tab Pane 1: Registered Students -->
       <div id="spane-students" class="settings-pane active">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
           <div>
             <h3 style="font-size:1.1rem; font-weight:700; margin:0;">👥 Registered Student Accounts</h3>
             <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
@@ -635,8 +651,10 @@
           </button>
         </div>
 
-        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
-          <table class="data-table" id="students-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+        <div class="table-responsive"
+          style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="students-table"
+            style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
             <thead>
               <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
                 <th style="padding:0.75rem 1rem;">Roll No.</th>
@@ -656,7 +674,8 @@
 
       <!-- Tab Pane 2: Search & Query History -->
       <div id="spane-history" class="settings-pane" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
           <div>
             <h3 style="font-size:1.1rem; font-weight:700; margin:0;">🔎 Search &amp; Query Audit Trail</h3>
             <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
@@ -668,8 +687,10 @@
           </button>
         </div>
 
-        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
-          <table class="data-table" id="history-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+        <div class="table-responsive"
+          style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="history-table"
+            style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
             <thead>
               <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
                 <th style="padding:0.75rem 1rem;">Date &amp; Time</th>
@@ -689,24 +710,29 @@
 
       <!-- Tab Pane 3: Admin Security & Password Change -->
       <div id="spane-security" class="settings-pane" style="display:none;">
-        <div style="max-width:540px; background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:1.75rem;">
+        <div
+          style="max-width:540px; background:white; border:1px solid var(--border); border-radius:var(--radius-md); padding:1.75rem;">
           <h3 style="font-size:1.1rem; font-weight:700; margin:0 0 0.5rem 0;">🔐 Update Administrator Password</h3>
           <p style="font-size:0.825rem; color:var(--text-secondary); margin-bottom:1.5rem;">
-            Set a new custom password for administrator access. Once changed, use your new password for all subsequent logins.
+            Set a new custom password for administrator access. Once changed, use your new password for all subsequent
+            logins.
           </p>
 
           <form id="admin-password-form" onsubmit="handleAdminPasswordChange(event)">
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label">Current Admin Password *</label>
-              <input type="password" class="form-input" id="curr-admin-pass" required placeholder="Enter current password">
+              <input type="password" class="form-input" id="curr-admin-pass" required
+                placeholder="Enter current password">
             </div>
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label">New Admin Password *</label>
-              <input type="password" class="form-input" id="new-admin-pass" required minlength="4" placeholder="Enter new password">
+              <input type="password" class="form-input" id="new-admin-pass" required minlength="4"
+                placeholder="Enter new password">
             </div>
             <div class="form-group" style="margin-bottom:1.5rem;">
               <label class="form-label">Confirm New Password *</label>
-              <input type="password" class="form-input" id="confirm-admin-pass" required minlength="4" placeholder="Repeat new password">
+              <input type="password" class="form-input" id="confirm-admin-pass" required minlength="4"
+                placeholder="Repeat new password">
             </div>
             <button type="submit" class="btn btn-primary" style="font-weight:700;">
               💾 Save New Admin Password
@@ -717,7 +743,8 @@
 
       <!-- Tab Pane 4: Items Full Control -->
       <div id="spane-items" class="settings-pane" style="display:none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.75rem;">
           <div>
             <h3 style="font-size:1.1rem; font-weight:700; margin:0;">🛠️ Items Full Control &amp; Quick Editor</h3>
             <p style="font-size:0.825rem; color:var(--text-secondary); margin:0.25rem 0 0 0;">
@@ -729,8 +756,10 @@
           </button>
         </div>
 
-        <div class="table-responsive" style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
-          <table class="data-table" id="items-mgmt-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
+        <div class="table-responsive"
+          style="background:white; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;">
+          <table class="data-table" id="items-mgmt-table"
+            style="width:100%; border-collapse:collapse; text-align:left; font-size:0.875rem;">
             <thead>
               <tr style="background:var(--bg-subtle); border-bottom:1px solid var(--border);">
                 <th style="padding:0.75rem 1rem;">ID</th>
@@ -778,18 +807,20 @@
       <!-- Student Form -->
       <form id="student-login-form" onsubmit="handleStudentLogin(event)">
         <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
-          Enter your university student email or roll number and password to view your reported items and matching results.
+          Enter your university student email or roll number and password to view your reported items and matching
+          results.
         </p>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">RUET Student Email or Roll Number *</label>
-          <input type="text" class="form-input" id="login-student-email" required placeholder="e.g., 2410027@student.ruet.ac.bd"
-            value="2410027@student.ruet.ac.bd">
-          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>, <code>2410029</code></span>
+          <input type="text" class="form-input" id="login-student-email" required
+            placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
+          <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>,
+            <code>2410029</code></span>
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Student Password (Your Roll Number) *</label>
-          <input type="password" class="form-input" id="login-student-pass" required placeholder="Enter roll as password"
-            value="2410027">
+          <input type="password" class="form-input" id="login-student-pass" required
+            placeholder="Enter roll as password" value="2410027">
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Sign In as Student</button>
       </form>
@@ -820,18 +851,21 @@
     <div class="modal-content" style="max-width:460px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <h3 style="font-size:1.15rem; font-weight:800;" id="student-modal-title">Register Student Account</h3>
-        <button onclick="closeStudentModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        <button onclick="closeStudentModal()"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
       </div>
 
       <form id="student-mgmt-form" onsubmit="handleSaveStudentAccount(event)">
         <input type="hidden" id="edit-student-original-roll" value="">
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Roll Number *</label>
-          <input type="text" class="form-input" id="smgmt-roll" required placeholder="e.g. 2410027" oninput="autoFillStudentEmail(this.value)">
+          <input type="text" class="form-input" id="smgmt-roll" required placeholder="e.g. 2410027"
+            oninput="autoFillStudentEmail(this.value)">
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">University Email *</label>
-          <input type="email" class="form-input" id="smgmt-email" required placeholder="e.g. 2410027@student.ruet.ac.bd">
+          <input type="email" class="form-input" id="smgmt-email" required
+            placeholder="e.g. 2410027@student.ruet.ac.bd">
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Password *</label>
@@ -854,7 +888,8 @@
     <div class="modal-content" style="max-width:540px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
         <h3 style="font-size:1.2rem; font-weight:800;">✏️ Edit Item Details</h3>
-        <button onclick="closeEditItemModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        <button onclick="closeEditItemModal()"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
       </div>
 
       <form id="edit-item-form" onsubmit="handleSaveEditedItem(event)">
@@ -931,16 +966,20 @@
         <h3 style="margin:0; font-size:1.2rem; font-weight:800; display:flex; align-items:center; gap:0.5rem;">
           <span>🚀</span> Worldwide GitHub Update
         </h3>
-        <button onclick="closeSyncModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+        <button onclick="closeSyncModal()"
+          style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--text-muted);">&times;</button>
       </div>
 
       <div id="sync-modal-body">
         <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1rem;">
-          Clicking below will automatically commit your latest items, reports, and status updates directly to GitHub, deploying them to the live website worldwide.
+          Clicking below will automatically commit your latest items, reports, and status updates directly to GitHub,
+          deploying them to the live website worldwide.
         </p>
 
-        <div id="sync-status-box" style="padding:1rem; border-radius:var(--radius-sm); background:var(--bg-subtle, #f8fafc); border:1px solid var(--border, #e2e8f0); margin-bottom:1.25rem; font-size:0.875rem;">
-          <div id="sync-status-msg" style="font-weight:600; color:var(--text-primary);">Ready to sync with GitHub repository.</div>
+        <div id="sync-status-box"
+          style="padding:1rem; border-radius:var(--radius-sm); background:var(--bg-subtle, #f8fafc); border:1px solid var(--border, #e2e8f0); margin-bottom:1.25rem; font-size:0.875rem;">
+          <div id="sync-status-msg" style="font-weight:600; color:var(--text-primary);">Ready to sync with GitHub
+            repository.</div>
           <div id="sync-status-sub" style="font-size:0.8rem; color:var(--text-muted); margin-top:0.35rem;">
             When triggered, git add, commit, and push will run synchronously.
           </div>
@@ -948,13 +987,16 @@
 
         <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
           <button type="button" class="btn btn-outline" onclick="closeSyncModal()">Cancel</button>
-          <button type="button" class="btn btn-primary" id="sync-confirm-btn" onclick="executeWorldwideSync()" style="background: linear-gradient(135deg, #2563eb, #7c3aed); border:none; font-weight:700;">
+          <button type="button" class="btn btn-primary" id="sync-confirm-btn" onclick="executeWorldwideSync()"
+            style="background: linear-gradient(135deg, #2563eb, #7c3aed); border:none; font-weight:700;">
             🚀 Commit &amp; Deploy Worldwide
           </button>
         </div>
 
-        <div style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.75rem; color:var(--text-muted);">
-          <strong>💡 Desktop 1-Click Shortcut:</strong> You can also double-click <code>update_worldwide.bat</code> in the project folder anytime to push to GitHub instantly!
+        <div
+          style="margin-top:1.25rem; padding-top:1rem; border-top:1px solid var(--border); font-size:0.75rem; color:var(--text-muted);">
+          <strong>💡 Desktop 1-Click Shortcut:</strong> You can also double-click <code>update_worldwide.bat</code> in
+          the project folder anytime to push to GitHub instantly!
         </div>
       </div>
     </div>
@@ -963,7 +1005,7 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
-  <script src="js/app.js?v=2.2"></script>
+  <script src="js/app.js"></script>
 </body>
 
 </html>
