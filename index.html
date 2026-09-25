@@ -47,15 +47,20 @@
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">RUET Student Email or Roll Number *</label>
           <input type="text" class="form-input" id="start-student-email" required
-            placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
+            placeholder="e.g., 2410027@student.ruet.ac.bd">
           <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>,
             <code>2410029</code></span>
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Student Password (Your Roll Number) *</label>
-          <input type="password" class="form-input" id="start-student-pass" required
-            placeholder="Enter roll as password" value="2410027">
-          <span class="form-help">Default password is your roll (e.g., <code>2410027</code>)</span>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" class="form-input" id="start-student-pass" required
+              placeholder="Enter roll as password" style="padding-right:2.5rem; width:100%;">
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('start-student-pass', this)"
+              style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+              title="Show password">👁️</button>
+          </div>
+          <span class="form-help">Password is your roll (e.g., <code>2410027</code>)</span>
         </div>
         <button type="submit" class="btn btn-primary"
           style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700;">
@@ -71,13 +76,17 @@
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Admin Username</label>
-          <input type="text" class="form-input" id="start-admin-user" required placeholder="admin" value="admin">
+          <input type="text" class="form-input" id="start-admin-user" required placeholder="admin">
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Admin Password</label>
-          <input type="password" class="form-input" id="start-admin-pass" required placeholder="••••••••"
-            value="admin123">
-          <span class="form-help">Default demo credentials: <code>admin</code> / <code>admin123</code></span>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" class="form-input" id="start-admin-pass" required placeholder="Enter admin password"
+              style="padding-right:2.5rem; width:100%;">
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('start-admin-pass', this)"
+              style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+              title="Show password">👁️</button>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary"
           style="width:100%; padding:0.75rem; font-size:1rem; font-weight:700; background: linear-gradient(135deg, #2563eb, #7c3aed); border:none;">
@@ -721,18 +730,33 @@
           <form id="admin-password-form" onsubmit="handleAdminPasswordChange(event)">
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label">Current Admin Password *</label>
-              <input type="password" class="form-input" id="curr-admin-pass" required
-                placeholder="Enter current password">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" class="form-input" id="curr-admin-pass" required
+                  placeholder="Enter current password" style="padding-right:2.5rem; width:100%;">
+                <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('curr-admin-pass', this)"
+                  style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+                  title="Show password">👁️</button>
+              </div>
             </div>
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label">New Admin Password *</label>
-              <input type="password" class="form-input" id="new-admin-pass" required minlength="4"
-                placeholder="Enter new password">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" class="form-input" id="new-admin-pass" required minlength="4"
+                  placeholder="Enter new password" style="padding-right:2.5rem; width:100%;">
+                <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('new-admin-pass', this)"
+                  style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+                  title="Show password">👁️</button>
+              </div>
             </div>
             <div class="form-group" style="margin-bottom:1.5rem;">
               <label class="form-label">Confirm New Password *</label>
-              <input type="password" class="form-input" id="confirm-admin-pass" required minlength="4"
-                placeholder="Repeat new password">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" class="form-input" id="confirm-admin-pass" required minlength="4"
+                  placeholder="Repeat new password" style="padding-right:2.5rem; width:100%;">
+                <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('confirm-admin-pass', this)"
+                  style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+                  title="Show password">👁️</button>
+              </div>
             </div>
             <button type="submit" class="btn btn-primary" style="font-weight:700;">
               💾 Save New Admin Password
@@ -825,14 +849,19 @@
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">RUET Student Email or Roll Number *</label>
           <input type="text" class="form-input" id="login-student-email" required
-            placeholder="e.g., 2410027@student.ruet.ac.bd" value="2410027@student.ruet.ac.bd">
+            placeholder="e.g., 2410027@student.ruet.ac.bd">
           <span class="form-help">Authorized Accounts: <code>2410027</code>, <code>2410026</code>,
             <code>2410029</code></span>
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Student Password (Your Roll Number) *</label>
-          <input type="password" class="form-input" id="login-student-pass" required
-            placeholder="Enter roll as password" value="2410027">
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" class="form-input" id="login-student-pass" required
+              placeholder="Enter roll as password" style="padding-right:2.5rem; width:100%;">
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-student-pass', this)"
+              style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+              title="Show password">👁️</button>
+          </div>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%;">Sign In as Student</button>
       </form>
@@ -845,13 +874,17 @@
         </p>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Admin Username</label>
-          <input type="text" class="form-input" id="login-admin-user" required placeholder="admin" value="admin">
+          <input type="text" class="form-input" id="login-admin-user" required placeholder="admin">
         </div>
         <div class="form-group" style="margin-bottom:1.25rem;">
           <label class="form-label">Admin Password</label>
-          <input type="password" class="form-input" id="login-admin-pass" required placeholder="••••••••"
-            value="admin123">
-          <span class="form-help">Default demo credentials: admin / admin123</span>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" class="form-input" id="login-admin-pass" required placeholder="Enter admin password"
+              style="padding-right:2.5rem; width:100%;">
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('login-admin-pass', this)"
+              style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+              title="Show password">👁️</button>
+          </div>
         </div>
         <button type="submit" class="btn btn-danger" style="width:100%;">Sign In as Administrator</button>
       </form>
@@ -881,7 +914,13 @@
         </div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label class="form-label">Password *</label>
-          <input type="text" class="form-input" id="smgmt-pass" required placeholder="Password (default is roll)">
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" class="form-input" id="smgmt-pass" required placeholder="Password (default is roll)"
+              style="padding-right:2.5rem; width:100%;">
+            <button type="button" class="btn-toggle-pass" onclick="togglePasswordVisibility('smgmt-pass', this)"
+              style="position:absolute; right:0.6rem; background:none; border:none; cursor:pointer; font-size:1.15rem; color:var(--text-muted); line-height:1; padding:0.25rem;"
+              title="Show password">👁️</button>
+          </div>
         </div>
         <div class="form-group" style="margin-bottom:1.5rem;">
           <label class="form-label">Department / Info</label>

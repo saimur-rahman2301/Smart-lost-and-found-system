@@ -8,33 +8,8 @@
  *    or static hosting, providing 100% interactive functionality without throwing errors.
  */
 
-// ── Seed Dataset (Identical to university items.json) ───────────────────────
-const SEED_ITEMS = [
-  { id: "FOUND_10", type: "FOUND", name: "Apple AirPods Case (Green Cover)", category: "Electronics", description: "Found under chair in the auditorium after afternoon seminar.", brand: "Apple", color: "White", location: "Central Auditorium", date: "2026-09-21", keywords: "airpods apple wireless case earphones green cover", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "LOST_10", type: "LOST", name: "Apple AirPods Pro (2nd Gen) in Case", category: "Electronics", description: "White Apple AirPods charging case with a green silicone protective cover.", brand: "Apple", color: "White", location: "Central Auditorium", date: "2026-09-21", keywords: "airpods apple earphones headphones pro wireless white", contact: "fatima.m@uni.edu", status: "ACTIVE" },
-  { id: "LOST_11", type: "LOST", name: "Sony WH-1000XM4 Wireless Headphones", category: "Electronics", description: "Silver noise cancelling headphones in black travel pouch.", brand: "Sony", color: "Silver", location: "Main Library", date: "2026-09-23", keywords: "sony headphones wireless silver audio", contact: "tester@uni.edu", status: "RECOVERED" },
-  { id: "LOST_1", type: "LOST", name: "Casio FX-991ES Plus Scientific Calculator", category: "Electronics", description: "Left on desk in 2nd floor quiet area with name sticker on back.", brand: "Casio", color: "Black", location: "Main Library", date: "2026-09-20", keywords: "calculator casio fx991es scientific black math", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "LOST_2", type: "LOST", name: "University Student ID Card - Ali Raza", category: "Documents & Cards", description: "Official CS department student card on a navy blue lanyard with ID 2024-CS-42.", brand: "University", color: "Blue", location: "Cafeteria & Food Court", date: "2026-09-21", keywords: "student id card ali raza computer science lanyard", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "LOST_3", type: "LOST", name: "Brown Leather Wallet (Samsonite)", category: "Keys & Wallets", description: "Dark brown bi-fold leather wallet containing student driving license and cards.", brand: "Samsonite", color: "Brown", location: "Student Center", date: "2026-09-19", keywords: "wallet leather brown samsonite license cards", contact: "sara.k@uni.edu", status: "ACTIVE" },
-  { id: "LOST_4", type: "LOST", name: "Dell Pro 15.6 Laptop Backpack", category: "Bags & Backpacks", description: "Black Dell backpack with orange zipper accents. Contains charger and spiral notebook.", brand: "Dell", color: "Black", location: "Computer Science Labs", date: "2026-09-18", keywords: "backpack bag dell black laptop lab charger", contact: "omar.s@uni.edu", status: "ACTIVE" },
-  { id: "LOST_5", type: "LOST", name: "Data Structures & Algorithms in C++ Textbook", category: "Books & Stationery", description: "Hardcover textbook by Mark Allen Weiss. Highlighted chapters on Trees and Graphs.", brand: "Pearson", color: "Blue", location: "Main Library", date: "2026-09-22", keywords: "book textbook dsa data structures c++ algorithms", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "LOST_6", type: "LOST", name: "SanDisk Ultra 64GB USB 3.0 Flash Drive", category: "Electronics", description: "Small red and black retractable USB drive containing semester lab project code.", brand: "SanDisk", color: "Red", location: "Computer Science Labs", date: "2026-09-21", keywords: "usb flash drive sandisk 64gb red black memory stick", contact: "fatima.m@uni.edu", status: "ACTIVE" },
-  { id: "LOST_7", type: "LOST", name: "Dorm Room Keys on Blue Nissan Keychain", category: "Keys & Wallets", description: "Ring of 3 silver metal keys with a blue rubber Nissan keychain tag.", brand: "Yale", color: "Silver", location: "Main Parking Area", date: "2026-09-17", keywords: "keys dorm room keychain blue nissan metal", contact: "hamza.t@uni.edu", status: "ACTIVE" },
-  { id: "LOST_8", type: "LOST", name: "Apple iPhone 13 (Midnight Black, 128GB)", category: "Electronics", description: "Black iPhone in clear protective bumper case with a minor scratch on screen guard.", brand: "Apple", color: "Black", location: "Sports Complex / Gym", date: "2026-09-22", keywords: "iphone apple phone black 13 mobile smartphone", contact: "sara.k@uni.edu", status: "ACTIVE" },
-  { id: "LOST_9", type: "LOST", name: "Final Year Engineering Project Report Folder", category: "Documents & Cards", description: "Thick blue plastic folder containing signed project reports, circuit schematics, and CD.", brand: "Generic", color: "Blue", location: "Engineering Block A", date: "2026-09-20", keywords: "documents folder report engineering fyp drawings", contact: "omar.s@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_1", type: "FOUND", name: "Casio Scientific Calculator FX-991ES", category: "Electronics", description: "Found on study table in the 2nd floor library reading room. Calculator works perfectly.", brand: "Casio", color: "Black", location: "Main Library", date: "2026-09-20", keywords: "calculator casio fx991es scientific black desk", contact: "hamza.t@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_2", type: "FOUND", name: "Student ID Card (Ali Raza)", category: "Documents & Cards", description: "Found on the cashier counter at the main cafeteria. Navy blue strap attached.", brand: "University", color: "Blue", location: "Cafeteria & Food Court", date: "2026-09-21", keywords: "id card student ali raza university cafeteria lanyard", contact: "omar.s@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_3", type: "FOUND", name: "Brown Leather Wallet", category: "Keys & Wallets", description: "Found on a couch in the student center lounge area. Samsonite logo visible.", brand: "Samsonite", color: "Brown", location: "Student Center", date: "2026-09-19", keywords: "wallet leather brown samsonite cards money lounge", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_4", type: "FOUND", name: "Black Dell Laptop Bag", category: "Bags & Backpacks", description: "Found next to workstation in Lab 2. Dell branding on front with charger inside.", brand: "Dell", color: "Black", location: "Computer Science Labs", date: "2026-09-18", keywords: "backpack bag dell black laptop computer lab", contact: "fatima.m@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_5", type: "FOUND", name: "C++ Data Structures Book (Pearson)", category: "Books & Stationery", description: "Found on a study desk near the bookshelf section. Blue cover.", brand: "Pearson", color: "Blue", location: "Main Library", date: "2026-09-22", keywords: "book textbook dsa data structures c++ pearson library", contact: "sara.k@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_6", type: "FOUND", name: "SanDisk 64GB Red & Black Flash Drive", category: "Electronics", description: "Found plugged into USB port of PC in CS Lab 3. Contains code folders.", brand: "SanDisk", color: "Red", location: "Computer Science Labs", date: "2026-09-21", keywords: "usb sandisk 64gb red black drive flash memory lab", contact: "ali.raza@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_7", type: "FOUND", name: "Ring of Keys with Blue Tag", category: "Keys & Wallets", description: "Found near bike stand in main parking lot. Three metal keys on ring.", brand: "Yale", color: "Silver", location: "Main Parking Area", date: "2026-09-18", keywords: "keys ring keychain metal blue parking bike dorm", contact: "omar.s@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_8", type: "FOUND", name: "Black iPhone in Clear Case", category: "Electronics", description: "Found on gym bench near locker room. Screen locked.", brand: "Apple", color: "Black", location: "Sports Complex / Gym", date: "2026-09-22", keywords: "iphone apple phone black mobile gym bench", contact: "hamza.t@uni.edu", status: "ACTIVE" },
-  { id: "FOUND_9", type: "FOUND", name: "Blue Engineering Project Report File", category: "Documents & Cards", description: "Found in Lecture Hall 2, Eng Block A. Contains printed technical reports and schematics.", brand: "Generic", color: "Blue", location: "Engineering Block A", date: "2026-09-20", keywords: "documents folder report engineering file papers fyp", contact: "sara.k@uni.edu", status: "ACTIVE" },
-  { id: "LOST_12", type: "LOST", name: "RUET Student ID Card (Roll 2410027)", category: "Documents & Cards", description: "Official RUET ECE student ID card with red strap, lost near Academic Building 2.", brand: "RUET", color: "Red", location: "Academic Building 2", date: "2026-09-24", keywords: "ruet student id card 2410027 ece lanyard red", contact: "2410027@student.ruet.ac.bd", status: "ACTIVE" },
-  { id: "FOUND_11", type: "FOUND", name: "Casio Scientific Calculator fx-991CW", category: "Electronics", description: "Found in Library 1st floor study room, has small RUET sticker on reverse side.", brand: "Casio", color: "Black", location: "Main Library", date: "2026-09-24", keywords: "calculator casio 991cw scientific black library 2410026", contact: "2410026@student.ruet.ac.bd", status: "ACTIVE" },
-  { id: "LOST_13", type: "LOST", name: "Lenovo ThinkPad Wireless Mouse", category: "Electronics", description: "Black Lenovo optical mouse left in Central Computer Center after lab session.", brand: "Lenovo", color: "Black", location: "Central Computer Center", date: "2026-09-23", keywords: "lenovo mouse wireless optical black computer center 2410029", contact: "2410029@student.ruet.ac.bd", status: "ACTIVE" }
-];
+// ── Seed Dataset (Empty by default for clean user input) ───────────────────
+const SEED_ITEMS = [];
 
 // ── System Global State ────────────────────────────────────────────────────
 let isBackendOnline = false;
@@ -49,7 +24,7 @@ function getApiBase() {
 }
 const API_BASE = getApiBase();
 
-let currentUser = JSON.parse(localStorage.getItem('smart_lost_found_user')) || null;
+let currentUser = null;
 
 let allItemsCache = [];
 let currentFilter = {
@@ -62,16 +37,22 @@ let currentFilter = {
 
 // ── In-Browser Client Storage ──────────────────────────────────────────────
 function getLocalItems() {
+  if (localStorage.getItem('smart_lost_found_v5_clean') !== 'true') {
+    localStorage.setItem('smart_lost_found_items', JSON.stringify([]));
+    localStorage.setItem('smart_lost_found_search_history', JSON.stringify([]));
+    localStorage.setItem('smart_lost_found_v5_clean', 'true');
+    return [];
+  }
   const data = localStorage.getItem('smart_lost_found_items');
   if (!data) {
-    localStorage.setItem('smart_lost_found_items', JSON.stringify(SEED_ITEMS));
-    return [...SEED_ITEMS];
+    localStorage.setItem('smart_lost_found_items', JSON.stringify([]));
+    return [];
   }
   try {
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [...SEED_ITEMS];
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
-    return [...SEED_ITEMS];
+    return [];
   }
 }
 
@@ -84,7 +65,7 @@ const CLOUD_DB_URL = 'https://mantledb.sh/v2/smart-lost-found-ruet/database';
 
 // Asynchronously push latest items database to worldwide cloud
 async function pushToWorldwideCloudDatabase(items) {
-  if (!Array.isArray(items) || items.length === 0) return;
+  if (!Array.isArray(items)) return;
   try {
     const payload = {
       items,
@@ -110,7 +91,7 @@ async function syncWorldwideCloudDatabase() {
       const res = await fetch(CLOUD_DB_URL);
       if (res.ok) {
         const data = await res.json();
-        if (data && Array.isArray(data.items) && data.items.length > 0) {
+        if (data && Array.isArray(data.items)) {
           cloudItems = data.items;
         }
       }
@@ -119,19 +100,19 @@ async function syncWorldwideCloudDatabase() {
     }
 
     // 2. Fallback to items.json if cloud was not reachable
-    if (!cloudItems || cloudItems.length === 0) {
+    if (cloudItems === null) {
       try {
         const localRes = await fetch(`./items.json?_t=${Date.now()}`);
         if (localRes.ok) {
           const lData = await localRes.json();
-          if (Array.isArray(lData) && lData.length > 0) {
+          if (Array.isArray(lData)) {
             cloudItems = lData;
           }
         }
       } catch (e) {}
     }
 
-    if (!cloudItems || cloudItems.length === 0) return;
+    if (cloudItems === null) return;
 
     // 3. Bidirectional merge:
     // - Merge cloud items into local storage
@@ -308,28 +289,19 @@ function saveRegisteredStudents(list) {
 }
 
 // ── Search & Query History Audit Store ──────────────────────────────────────
-const DEFAULT_SEARCH_HISTORY = [
-  { id: "SH_1", timestamp: "2026-09-24 16:45:10", query: "student id card 2410027", category: "Documents & Cards", type: "LOST", resultsCount: 1, searchedBy: "2410027@student.ruet.ac.bd" },
-  { id: "SH_2", timestamp: "2026-09-24 16:20:05", query: "casio calculator 991cw", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "2410026@student.ruet.ac.bd" },
-  { id: "SH_3", timestamp: "2026-09-24 15:55:40", query: "wireless mouse lenovo", category: "Electronics", type: "LOST", resultsCount: 1, searchedBy: "2410029@student.ruet.ac.bd" },
-  { id: "SH_4", timestamp: "2026-09-23 14:10:12", query: "sandisk red flash drive cs lab", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "ali.raza@uni.edu" },
-  { id: "SH_5", timestamp: "2026-09-22 11:35:18", query: "keys blue tag parking", category: "Keys & Wallets", type: "FOUND", resultsCount: 1, searchedBy: "omar.s@uni.edu" },
-  { id: "SH_6", timestamp: "2026-09-22 10:15:30", query: "black iphone gym locker", category: "Electronics", type: "FOUND", resultsCount: 1, searchedBy: "hamza.t@uni.edu" },
-  { id: "SH_7", timestamp: "2026-09-21 17:05:22", query: "engineering project report folder", category: "Documents & Cards", type: "FOUND", resultsCount: 1, searchedBy: "sara.k@uni.edu" },
-  { id: "SH_8", timestamp: "2026-09-20 12:40:00", query: "casio fx-991ex calculator", category: "Electronics", type: "LOST", resultsCount: 2, searchedBy: "admin@university.edu" }
-];
+const DEFAULT_SEARCH_HISTORY = [];
 
 function getSearchHistory() {
   const data = localStorage.getItem('smart_lost_found_search_history');
   if (!data) {
-    localStorage.setItem('smart_lost_found_search_history', JSON.stringify(DEFAULT_SEARCH_HISTORY));
-    return [...DEFAULT_SEARCH_HISTORY];
+    localStorage.setItem('smart_lost_found_search_history', JSON.stringify([]));
+    return [];
   }
   try {
     const list = JSON.parse(data);
-    return Array.isArray(list) ? list : [...DEFAULT_SEARCH_HISTORY];
+    return Array.isArray(list) ? list : [];
   } catch (e) {
-    return [...DEFAULT_SEARCH_HISTORY];
+    return [];
   }
 }
 
@@ -754,7 +726,7 @@ async function fetchItems(params = {}) {
   // Client-Side In-Browser DSA Engine
   let items = getLocalItems();
 
-  // Role Filtering: Student Privacy Enforcement (Preserves all items reported by student)
+  // Role Filtering: Student Privacy Enforcement (Student strictly sees only items they reported)
   if (currentUser && currentUser.role === 'STUDENT') {
     const studentEmail = (currentUser.contact || '').toLowerCase().trim();
     const studentRoll = (currentUser.roll || '').trim();
@@ -767,11 +739,10 @@ async function fetchItems(params = {}) {
       // 1. Direct match with student email or reportedBy
       if (itContact === studentEmail || itReportedBy === studentEmail) return true;
 
-      // 2. Roll matching (e.g. 2410027)
+      // 2. Roll matching for student's own account
       if (studentRoll) {
         if (itRoll === studentRoll) return true;
         if (itContact.includes(studentRoll) || itReportedBy.includes(studentRoll)) return true;
-        if ((it.keywords || '').includes(studentRoll) || (it.name || '').includes(studentRoll)) return true;
       }
       return false;
     });
@@ -1561,6 +1532,25 @@ function handleModalOverlayClick(event) {
   }
 }
 
+// ── Password Visibility Toggle & Authentication ────────────────────────────
+function togglePasswordVisibility(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (btnEl) {
+      btnEl.textContent = '🙈';
+      btnEl.title = 'Hide password';
+    }
+  } else {
+    input.type = 'password';
+    if (btnEl) {
+      btnEl.textContent = '👁️';
+      btnEl.title = 'Show password';
+    }
+  }
+}
+
 // ── Starting Portal Gateway & Authentication ───────────────────────────────
 function switchStartTab(tab) {
   const studentBtn = document.getElementById('start-tab-student');
@@ -1602,6 +1592,32 @@ function showStartingScreen() {
   if (startScreen) startScreen.style.display = 'flex';
   if (appHeader) appHeader.style.display = 'none';
   if (appMain) appMain.style.display = 'none';
+
+  // Ensure login fields are empty by default with hidden passwords and eye icons
+  const studentEmail = document.getElementById('start-student-email');
+  const studentPass = document.getElementById('start-student-pass');
+  const adminUser = document.getElementById('start-admin-user');
+  const adminPass = document.getElementById('start-admin-pass');
+  if (studentEmail) studentEmail.value = '';
+  if (studentPass) { studentPass.value = ''; studentPass.type = 'password'; }
+  if (adminUser) adminUser.value = '';
+  if (adminPass) { adminPass.value = ''; adminPass.type = 'password'; }
+
+  const modalStudentEmail = document.getElementById('login-student-email');
+  const modalStudentPass = document.getElementById('login-student-pass');
+  const modalAdminUser = document.getElementById('login-admin-user');
+  const modalAdminPass = document.getElementById('login-admin-pass');
+  if (modalStudentEmail) modalStudentEmail.value = '';
+  if (modalStudentPass) { modalStudentPass.value = ''; modalStudentPass.type = 'password'; }
+  if (modalAdminUser) modalAdminUser.value = '';
+  if (modalAdminPass) { modalAdminPass.value = ''; modalAdminPass.type = 'password'; }
+
+  document.querySelectorAll('.btn-toggle-pass').forEach(btn => {
+    btn.textContent = '👁️';
+    btn.title = 'Show password';
+  });
+
+  switchStartTab('STUDENT');
 }
 
 async function handleStartStudentLogin(event) {
@@ -1645,8 +1661,13 @@ async function handleStartAdminLogin(event) {
   if (event) event.preventDefault();
   const userInput = document.getElementById('start-admin-user') || document.getElementById('login-admin-user');
   const passInput = document.getElementById('start-admin-pass') || document.getElementById('login-admin-pass');
-  const username = userInput ? userInput.value.trim() : 'admin';
-  const password = passInput ? passInput.value.trim() : 'admin123';
+  const username = userInput ? userInput.value.trim() : '';
+  const password = passInput ? passInput.value.trim() : '';
+
+  if (!username || !password) {
+    showToast('Please enter both Admin username and password.', 'error');
+    return;
+  }
 
   let adminSuccess = false;
   const currentAdminPass = getAdminPassword();
@@ -2168,31 +2189,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Detect live C++ server in background
   await checkBackendHealth();
 
-  // Validate student user session against registered accounts
-  if (currentUser) {
-    if (currentUser.role === 'STUDENT') {
-      const registeredStudents = getRegisteredStudents();
-      const isValid = registeredStudents.some(s =>
-        s.email.toLowerCase() === (currentUser.contact || '').toLowerCase() ||
-        s.roll === currentUser.roll
-      );
-      if (!isValid) {
-        currentUser = null;
-        localStorage.removeItem('smart_lost_found_user');
-      }
-    }
-  }
-
-  if (currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'STUDENT')) {
-    enterWebsite();
-    if (currentUser.role === 'ADMIN') {
-      switchView('browse');
-    } else {
-      switchView('dashboard');
-    }
-  } else {
-    showStartingScreen();
-  }
+  // Always present the starting gateway login page first on link click / page open
+  currentUser = null;
+  localStorage.removeItem('smart_lost_found_user');
+  showStartingScreen();
 
   // Asynchronously sync database with repository items.json (GitHub Pages, Vercel & local)
   await syncDatabaseWithRepository();
